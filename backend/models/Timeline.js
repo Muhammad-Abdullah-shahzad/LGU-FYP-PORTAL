@@ -7,6 +7,7 @@ const timelineSchema = new mongoose.Schema({
         enum: ['Fall', 'Spring']
     },
     year: {
+
         type: Number,
         required: true
     },
