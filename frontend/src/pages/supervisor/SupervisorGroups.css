@@ -1,0 +1,85 @@
+.supervised-container {
+    padding: 20px 0;
+}
+
+.groups-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.groups-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.groups-table th {
+    background: #f8fafc;
+    padding: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.groups-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.domain-pill {
+    background: #f0f9ff;
+    color: #0369a1;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-pill.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pill.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.btn-view {
+    padding: 6px 12px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.btn-view:hover {
+    background: #4f46e5;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 100px 0;
+}
+
+.empty-state .icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+}

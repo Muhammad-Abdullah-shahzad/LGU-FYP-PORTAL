@@ -1,0 +1,570 @@
+{
+    "info": {
+        "name": "FYP Management System API",
+        "description": "Complete API collection for LGU FYP Management System",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{authToken}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api",
+            "type": "string"
+        },
+        {
+            "key": "authToken",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"newstudent@lgu.edu.pk\",\n  \"password\": \"password123\",\n  \"role\": \"student\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"registrationNumber\": \"L1F21BSCS0100\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const response = pm.response.json();",
+                                    "pm.collectionVariables.set(\"authToken\", response.token);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"coordinator@lgu.edu.pk\",\n  \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Current User",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Name\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "profile"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Users",
+            "item": [
+                {
+                    "name": "Get All Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users?role=student",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "role",
+                                    "value": "student"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get User by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create User",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"newsupervisor@lgu.edu.pk\",\n  \"password\": \"password123\",\n  \"role\": \"supervisor\",\n  \"firstName\": \"New\",\n  \"lastName\": \"Supervisor\",\n  \"domain\": \"Software Engineering\",\n  \"designation\": \"Assistant Professor\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/users",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Supervisors",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/supervisors",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "supervisors"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Teachers by Domain",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/teachers/by-domain/Software Engineering",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "teachers",
+                                "by-domain",
+                                "Software Engineering"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Groups",
+            "item": [
+                {
+                    "name": "Create Group",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"groupName\": \"AI Innovators\",\n  \"projectTitle\": \"Intelligent Traffic Management System\",\n  \"domain\": \"Artificial Intelligence\",\n  \"members\": [\n    \"L1F21BSCS0001\",\n    \"L1F21BSCS0002\"\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/groups",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "groups"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Group",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/groups/my-group",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "groups",
+                                "my-group"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Submit Proposal",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "description",
+                                    "value": "Our project aims to develop an intelligent traffic management system using AI and machine learning techniques.",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "objectives",
+                                    "value": "- Real-time traffic monitoring\n- Predictive traffic analysis\n- Automated signal optimization",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/groups/:id/proposal",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "groups",
+                                ":id",
+                                "proposal"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Request Supervisor",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"supervisorId\": \"SUPERVISOR_ID_HERE\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/groups/:id/request-supervisor",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "groups",
+                                ":id",
+                                "request-supervisor"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Groups (Coordinator)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/groups",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "groups"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Defense Panels",
+            "item": [
+                {
+                    "name": "Create Panel",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"panelName\": \"AI & ML Defense Panel\",\n  \"type\": \"proposal\",\n  \"members\": [\n    \"PANEL_MEMBER_ID_1\",\n    \"PANEL_MEMBER_ID_2\"\n  ],\n  \"date\": \"2025-03-01\",\n  \"semester\": 8\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/panels",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "panels"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Panels",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/panels",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "panels"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Schedule Defense",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"groupId\": \"GROUP_ID_HERE\",\n  \"timeSlot\": {\n    \"startTime\": \"09:00\",\n    \"endTime\": \"09:30\"\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/panels/:id/schedule",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "panels",
+                                ":id",
+                                "schedule"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Timeline",
+            "item": [
+                {
+                    "name": "Create Timeline",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"academicYear\": \"2024-2025\",\n  \"semester\": 8,\n  \"groupFormationStart\": \"2025-01-15\",\n  \"groupFormationEnd\": \"2025-01-31\",\n  \"proposalSubmissionStart\": \"2025-02-01\",\n  \"proposalSubmissionEnd\": \"2025-02-21\",\n  \"proposalDefenseStart\": \"2025-02-22\",\n  \"proposalDefenseEnd\": \"2025-03-07\",\n  \"midDefenseStart\": \"2025-04-01\",\n  \"midDefenseEnd\": \"2025-04-14\",\n  \"finalDefenseStart\": \"2025-05-15\",\n  \"finalDefenseEnd\": \"2025-05-31\",\n  \"isActive\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/timeline",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "timeline"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Timelines",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/timeline",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "timeline"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Active Timeline",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/timeline/active/8?academicYear=2024-2025",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "timeline",
+                                "active",
+                                "8"
+                            ],
+                            "query": [
+                                {
+                                    "key": "academicYear",
+                                    "value": "2024-2025"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Check Phase Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/timeline/check-phase/groupFormation?academicYear=2024-2025&semester=8",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "timeline",
+                                "check-phase",
+                                "groupFormation"
+                            ],
+                            "query": [
+                                {
+                                    "key": "academicYear",
+                                    "value": "2024-2025"
+                                },
+                                {
+                                    "key": "semester",
+                                    "value": "8"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,68 @@
+.panels-container {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.panel-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.panel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.member-chip {
+    padding: 2px 8px;
+    background: rgba(19, 99, 61, 0.05);
+    color: #13633d;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-block;
+    margin: 2px;
+}
+
+.chair-star {
+    color: #f59e0b;
+    margin-right: 4px;
+}
+
+.type-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+}
+
+.modal-xl-custom {
+    max-width: 900px;
+}
+
+.group-select-item {
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.group-select-item:hover {
+    background: #f8fafc;
+}
+
+.welcome-banner {
+    background: linear-gradient(135deg, #13633d 0%, #0f4d30 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+}

@@ -1,0 +1,62 @@
+.requests-container {
+    padding: 1rem 0;
+}
+
+.request-card-modern {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.request-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.member-avatar {
+    width: 32px;
+    height: 32px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.domain-badge-glass {
+    background: rgba(19, 99, 61, 0.08);
+    color: #13633d;
+    font-weight: 600;
+    font-size: 0.65rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid rgba(19, 99, 61, 0.1);
+}
+
+.summary-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.6;
+}
+
+.btn-approve-success {
+    background-color: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+.btn-approve-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.members-list-modern {
+    background: #fdfdfd;
+    border: 1px dashed #e2e8f0;
+}

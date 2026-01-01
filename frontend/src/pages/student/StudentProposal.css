@@ -1,0 +1,81 @@
+.proposal-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.proposal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.disabled-input {
+    background: #f1f5f9;
+    color: #475569;
+    cursor: not-allowed;
+}
+
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.form-info {
+    font-size: 13px;
+    color: #64748b;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid #94a3b8;
+}
+
+.alert-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-box.error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.alert-box.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.alert-box.warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

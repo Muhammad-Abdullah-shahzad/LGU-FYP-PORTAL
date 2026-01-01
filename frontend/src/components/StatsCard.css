@@ -1,0 +1,43 @@
+.stats-card {
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+
+.stats-icon-wrapper {
+    width: 45px;
+    height: 45px;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover .stats-icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.tracking-wider {
+    letter-spacing: 0.05em;
+}
+
+.stats-accent-bar {
+    height: 3px;
+    width: 100%;
+    opacity: 0.5;
+}
+
+.opacity-05 {
+    opacity: 0.05;
+}
+
+.fs-8 {
+    font-size: 0.7rem;
+}
+
+.stats-card .card-title {
+    font-size: 0.75rem !important;
+}
+
+.stats-card .card-value {
+    font-size: 1.25rem !important;
+}

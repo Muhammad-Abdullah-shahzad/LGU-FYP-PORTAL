@@ -1,0 +1,4 @@
+/* Auth styles are now handled by Bootstrap Utility Classes */
+.x-small {
+    font-size: 0.8rem;
+}
