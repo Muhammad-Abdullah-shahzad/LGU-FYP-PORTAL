@@ -12,9 +12,16 @@ const Register = () => {
         firstName: '',
         lastName: '',
         registrationNumber: '',
+        batch: 'Fall',
+        enrolledYear: new Date().getFullYear(),
+        semester: 7,
         domain: '',
         designation: ''
     });
+
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -44,11 +51,6 @@ const Register = () => {
         // Prepare data
         const { confirmPassword, domain, designation, ...registerData } = formData;
 
-        // Ensure student registration doesn't send unnecessary fields
-        if (registerData.role === 'student') {
-            // They are already excluded by destructuring domain/designation above
-        }
-
         const result = await register(registerData);
 
         if (result.success) {
@@ -62,7 +64,7 @@ const Register = () => {
 
     return (
         <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light px-3 py-5">
-            <div className="card shadow-lg border-0" style={{ maxWidth: '550px', width: '100%', borderRadius: '1.25rem' }}>
+            <div className="card shadow-lg border-0" style={{ maxWidth: '600px', width: '100%', borderRadius: '1.25rem' }}>
                 <div className="card-body p-4 p-md-5">
                     <div className="text-center mb-4">
                         <h2 className="fw-bold text-primary mb-1">Create Account</h2>
@@ -105,34 +107,51 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <div className="mb-3">
-                            <label className="form-label small fw-semibold text-secondary" htmlFor="email">Email Address *</label>
-                            <input
-                                type="email"
-                                className="form-control border-0 bg-light fs-6"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="name@lgu.edu.pk"
-                                style={{ borderRadius: '0.75rem' }}
-                                required
-                            />
+                        <div className="row g-3 mb-3">
+                            <div className="col-md-12">
+                                <label className="form-label small fw-semibold text-secondary" htmlFor="email">Email Address *</label>
+                                <input
+                                    type="email"
+                                    className="form-control border-0 bg-light fs-6"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="name@lgu.edu.pk"
+                                    style={{ borderRadius: '0.75rem' }}
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <div className="mb-4">
-                            <label className="form-label small fw-semibold text-secondary" htmlFor="registrationNumber">Registration Number *</label>
-                            <input
-                                type="text"
-                                className="form-control border-0 bg-light fs-6"
-                                id="registrationNumber"
-                                name="registrationNumber"
-                                value={formData.registrationNumber}
-                                onChange={handleChange}
-                                placeholder="L1F21BSCS0001"
-                                style={{ borderRadius: '0.75rem' }}
-                                required
-                            />
+                        <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                                <label className="form-label small fw-semibold text-secondary">Batch *</label>
+                                <select
+                                    className="form-select border-0 bg-light fs-6"
+                                    name="batch"
+                                    value={formData.batch}
+                                    onChange={handleChange}
+                                    style={{ borderRadius: '0.75rem' }}
+                                    required
+                                >
+                                    <option value="Fall">Fall</option>
+                                    <option value="Spring">Spring</option>
+                                </select>
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label small fw-semibold text-secondary">Enrollment Year *</label>
+                                <select
+                                    className="form-select border-0 bg-light fs-6"
+                                    name="enrolledYear"
+                                    value={formData.enrolledYear}
+                                    onChange={handleChange}
+                                    style={{ borderRadius: '0.75rem' }}
+                                    required
+                                >
+                                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                            </div>
                         </div>
 
                         <div className="row g-3 mb-4">

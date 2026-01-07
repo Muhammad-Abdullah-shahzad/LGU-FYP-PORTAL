@@ -45,6 +45,30 @@ export const createDefensePanel = async (req, res) => {
     }
 };
 
+// @desc    Delete defense panel (Coordinator)
+// @route   DELETE /api/panels/:id
+// @access  Private/Coordinator
+export const deleteDefensePanel = async (req, res) => {
+    try {
+        const panel = await DefensePanel.findById(req.params.id);
+
+        if (!panel) {
+            return res.status(404).json({ message: 'Panel not found' });
+        }
+
+        if (panel.assignedGroups && panel.assignedGroups.length > 0) {
+            return res.status(400).json({ message: 'Cannot delete panel with assigned groups. Reassign groups first.' });
+        }
+
+        await DefensePanel.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Defense panel deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // @desc    Get all defense panels
 // @route   GET /api/panels
 // @access  Private/Coordinator

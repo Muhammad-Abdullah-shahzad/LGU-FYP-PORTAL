@@ -30,11 +30,12 @@ export const createTimeline = async (req, res) => {
 // @access  Private
 export const getAllTimelines = async (req, res) => {
     try {
-        const { batch, year, semester, isActive } = req.query;
+        const { batch, year, batchYear, semester, isActive } = req.query;
 
         const filter = {};
         if (batch) filter.batch = batch;
         if (year) filter.year = parseInt(year);
+        if (batchYear) filter.batchYear = parseInt(batchYear);
         if (semester) filter.semester = parseInt(semester);
         if (isActive !== undefined) filter.isActive = isActive === 'true';
 
@@ -68,7 +69,7 @@ export const getActiveTimeline = async (req, res) => {
         if (batch) filter.batch = batch;
         if (year) filter.year = parseInt(year);
 
-        const timeline = await Timeline.findOne(filter);
+        const timeline = await Timeline.findOne(filter).sort({ year: -1, createdAt: -1 });
 
         if (!timeline) {
             return res.status(404).json({ message: 'No active timeline found' });
@@ -152,6 +153,7 @@ export const checkPhaseStatus = async (req, res) => {
         res.json({
             isActive,
             phase,
+            status: timeline[`${phase}Status`],
             startDate: timeline[`${phase}Start`],
             endDate: timeline[`${phase}End`]
         });

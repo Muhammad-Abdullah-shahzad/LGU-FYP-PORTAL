@@ -11,7 +11,8 @@ import {
     HiOutlineEye,
     HiOutlineCheckCircle,
     HiOutlineUser,
-    HiOutlineStar
+    HiOutlineStar,
+    HiOutlineDownload
 } from 'react-icons/hi';
 import './CoordinatorPanels.css';
 
@@ -55,9 +56,9 @@ const CoordinatorPanels = () => {
 
             setPanels(panelsRes.data.panels || []);
 
-            // Filter users to only include supervisors and panel members
+            // Filter users to only include supervisors
             const facultyMembers = usersRes.data.users?.filter(u =>
-                u.role === 'supervisor' || u.role === 'panel_member'
+                u.role === 'supervisor'
             ) || [];
             setUsers(facultyMembers);
 
@@ -176,6 +177,17 @@ const CoordinatorPanels = () => {
         });
     };
 
+    const handleDeletePanel = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this panel?')) return;
+        try {
+            await api.delete(`/panels/${id}`);
+            setPanels(panels.filter(p => p._id !== id));
+            alert('Panel deleted successfully');
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete panel');
+        }
+    };
+
     return (
         <DashboardLayout title="Defense Panel Management">
             <div className="container-fluid p-0 panels-container">
@@ -185,7 +197,7 @@ const CoordinatorPanels = () => {
                         <p className="opacity-75 small mb-0">Manage evaluation committees and group assignments</p>
                     </div>
                     <button
-                        className="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center"
+                        className="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center"
                         onClick={() => setShowCreateModal(true)}
                     >
                         <HiOutlinePlus className="me-2" size={20} />
@@ -204,7 +216,7 @@ const CoordinatorPanels = () => {
                         </div>
                         <h4 className="fw-bold font-outfit">No Panels Created</h4>
                         <p className="text-muted mb-4">You haven't set up any defense panels for this semester yet.</p>
-                        <button className="btn btn-outline-primary rounded-pill px-4" onClick={() => setShowCreateModal(true)}>
+                        <button className="btn btn-success text-light rounded-pill px-4" onClick={() => setShowCreateModal(true)}>
                             Get Started
                         </button>
                     </div>
@@ -249,7 +261,7 @@ const CoordinatorPanels = () => {
 
                                         <div className="d-flex gap-2">
                                             <button
-                                                className="btn btn-primary flex-grow-1 rounded-pill btn-sm fw-bold"
+                                                className="btn btn-success flex-grow-1 rounded-pill btn-sm fw-bold"
                                                 onClick={() => {
                                                     setSelectedPanel(panel);
                                                     setShowAssignModal(true);
@@ -258,11 +270,18 @@ const CoordinatorPanels = () => {
                                                 Assign Group
                                             </button>
                                             <button
-                                                className="btn btn-outline-success rounded-circle p-2 shadow-sm"
+                                                className="btn btn-light text-success border-0 rounded-circle p-2 shadow-sm"
                                                 title="Export into CSV"
                                                 onClick={() => exportToCSV(panel)}
                                             >
-                                                <HiOutlinePlus size={18} style={{ transform: 'rotate(45deg)' }} />
+                                                <HiOutlineDownload size={18} />
+                                            </button>
+                                            <button
+                                                className="btn btn-light text-danger border-0 rounded-circle p-2 shadow-sm"
+                                                title="Delete Panel"
+                                                onClick={() => handleDeletePanel(panel._id)}
+                                            >
+                                                <HiOutlineTrash size={18} />
                                             </button>
                                         </div>
                                     </div>
@@ -275,8 +294,8 @@ const CoordinatorPanels = () => {
 
             {/* Create Panel Modal */}
             {showCreateModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+                    <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '800px', margin: '1.75rem auto' }}>
                         <div className="modal-content border-0 rounded-4 shadow-lg">
                             <div className="modal-header border-0 p-4 pb-0">
                                 <h5 className="fw-bold font-outfit">Assemble New Defense Panel</h5>
@@ -285,7 +304,7 @@ const CoordinatorPanels = () => {
                             <form onSubmit={handleCreatePanel}>
                                 <div className="modal-body p-4">
                                     <div className="row g-4 mb-4">
-                                        <div className="col-md-6">
+                                        <div className="col-12">
                                             <label className="form-label small fw-bold">Panel Type</label>
                                             <select
                                                 className="form-select rounded-3 p-2 bg-light border-0"
@@ -298,7 +317,7 @@ const CoordinatorPanels = () => {
                                                 <option value="external">External Defense</option>
                                             </select>
                                         </div>
-                                        <div className="col-md-3">
+                                        <div className="col-md-6">
                                             <label className="form-label small fw-bold">Academic Year</label>
                                             <input
                                                 type="number"
@@ -307,7 +326,7 @@ const CoordinatorPanels = () => {
                                                 onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
                                             />
                                         </div>
-                                        <div className="col-md-3">
+                                        <div className="col-md-6">
                                             <label className="form-label small fw-bold">Semester</label>
                                             <select
                                                 className="form-select rounded-3 p-2 bg-light border-0"
@@ -370,7 +389,7 @@ const CoordinatorPanels = () => {
                                     <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowCreateModal(false)}>Cancel</button>
                                     <button
                                         type="submit"
-                                        className="btn btn-primary rounded-pill px-4"
+                                        className="btn btn-success rounded-pill px-4"
                                         disabled={submitting || formData.members.length < 1 || !formData.chairperson}
                                     >
                                         {submitting ? 'Creating...' : 'Create Panel'}
@@ -418,7 +437,7 @@ const CoordinatorPanels = () => {
                                     <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowAssignModal(false)}>Cancel</button>
                                     <button
                                         type="submit"
-                                        className="btn btn-primary rounded-pill px-4"
+                                        className="btn btn-success rounded-pill px-4"
                                         disabled={submitting || !assignmentData.groupId}
                                     >
                                         {submitting ? 'Assigning...' : 'Assign Group'}

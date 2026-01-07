@@ -133,11 +133,14 @@ export const deleteUser = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Soft delete - deactivate instead of removing
-        user.isActive = false;
-        await user.save();
+        // Check if user is a coordinator (optional security)
+        if (user.role === 'coordinator') {
+            return res.status(400).json({ message: 'Coordinator accounts cannot be deleted' });
+        }
 
-        res.json({ message: 'User deactivated successfully' });
+        await User.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'User deleted permanently' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });

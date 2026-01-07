@@ -23,7 +23,7 @@ const groupSchema = new mongoose.Schema({
     },
     projectDomain: {
         type: String,
-        enum: ['Software Engineering', 'Artificial Intelligence', 'Data Science', 'Cybersecurity', 'AI', 'ML', 'DL', 'CV', 'NLP', 'LLM', 'Web', 'Mobile', 'Desktop', 'AR', 'VR', 'Game'],
+        enum: ['Software Engineering', 'Artificial Intelligence', 'Data Science', 'Cybersecurity', 'Web Development', 'Mobile Development', 'AR/VR', 'Deep Learning', 'AI', 'ML', 'CV', 'NLP', 'LLM', 'Desktop', 'Game'],
         required: true
     },
     projectSummary: {
@@ -56,6 +56,10 @@ const groupSchema = new mongoose.Schema({
         enum: ['Fall', 'Spring']
     },
     year: {
+        type: Number,
+        required: true
+    },
+    batchYear: {
         type: Number,
         required: true
     },

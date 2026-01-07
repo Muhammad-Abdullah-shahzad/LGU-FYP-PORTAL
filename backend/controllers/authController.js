@@ -6,7 +6,7 @@ import { generateToken } from '../middleware/auth.js';
 // @access  Public
 export const register = async (req, res) => {
     try {
-        const { email, password, role, firstName, lastName, registrationNumber, domain, designation } = req.body;
+        const { email, password, role, firstName, lastName, registrationNumber, batch, enrolledYear, semester, domain, designation } = req.body;
 
         // Only allow students to register via this endpoint
         if (role !== 'student') {
@@ -34,7 +34,9 @@ export const register = async (req, res) => {
             role,
             firstName,
             lastName,
-            registrationNumber
+            batch,
+            enrolledYear: parseInt(enrolledYear),
+            semester: parseInt(semester) || 7
         };
 
         // Only add domain and designation if they are provided and not empty
@@ -99,7 +101,6 @@ export const login = async (req, res) => {
             role: user.role,
             firstName: user.firstName,
             lastName: user.lastName,
-            registrationNumber: user.registrationNumber,
             domain: user.domain,
             token: generateToken(user._id)
         });

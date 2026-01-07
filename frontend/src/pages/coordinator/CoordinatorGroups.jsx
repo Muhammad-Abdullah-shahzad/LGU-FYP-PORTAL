@@ -7,7 +7,7 @@ const CoordinatorGroups = () => {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         batch: '',
-        year: '',
+        batchYear: '',
         semester: ''
     });
 
@@ -47,8 +47,8 @@ const CoordinatorGroups = () => {
                                 </select>
                             </div>
                             <div className="col-md-3">
-                                <label className="form-label small fw-bold text-muted text-uppercase">Year</label>
-                                <select className="form-select border-0 bg-light rounded-3" value={filters.year} onChange={(e) => setFilters({ ...filters, year: e.target.value })}>
+                                <label className="form-label small fw-bold text-muted text-uppercase">Enrollment Year</label>
+                                <select className="form-select border-0 bg-light rounded-3" value={filters.batchYear} onChange={(e) => setFilters({ ...filters, batchYear: e.target.value })}>
                                     <option value="">All Years</option>
                                     {years.map(y => <option key={y} value={y}>{y}</option>)}
                                 </select>
@@ -79,6 +79,7 @@ const CoordinatorGroups = () => {
                                     <th className="ps-4 border-0">Group Info</th>
                                     <th className="border-0 text-center">Batch/Sem</th>
                                     <th className="border-0">Supervisor</th>
+                                    <th className="border-0">Defense Panel</th>
                                     <th className="border-0 text-center">Members</th>
                                     <th className="border-0 pe-4">Status</th>
                                 </tr>
@@ -92,7 +93,7 @@ const CoordinatorGroups = () => {
                                         </td>
                                         <td className="text-center">
                                             <span className="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
-                                                {group.batch} {group.year}
+                                                {group.batch} {group.batchYear || group.year}
                                             </span>
                                             <div className="x-small text-muted mt-1">Semester {group.semester}</div>
                                         </td>
@@ -101,6 +102,47 @@ const CoordinatorGroups = () => {
                                                 <div className="d-flex align-items-center">
                                                     <div className="bg-light rounded-circle p-2 me-2" style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>👨‍🏫</div>
                                                     <span className="small fw-bold">{group.supervisor.firstName} {group.supervisor.lastName}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted small italic">Not Assigned</span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {group.externalPanel ? (
+                                                <div className="small">
+                                                    <div className="fw-bold text-success" style={{ fontSize: '10px' }}>EXTERNAL DEFENSE</div>
+                                                    <div className="text-muted d-flex flex-wrap gap-1" style={{ fontSize: '11px' }}>
+                                                        {group.externalPanel.members?.map((m, i) => (
+                                                            <span key={i}>{m.firstName} {m.lastName}{i < group.externalPanel.members.length - 1 ? ',' : ''}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : group.internalPanel ? (
+                                                <div className="small">
+                                                    <div className="fw-bold text-info" style={{ fontSize: '10px' }}>INTERNAL DEFENSE</div>
+                                                    <div className="text-muted d-flex flex-wrap gap-1" style={{ fontSize: '11px' }}>
+                                                        {group.internalPanel.members?.map((m, i) => (
+                                                            <span key={i}>{m.firstName} {m.lastName}{i < group.internalPanel.members.length - 1 ? ',' : ''}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : group.srsPanel ? (
+                                                <div className="small">
+                                                    <div className="fw-bold text-warning" style={{ fontSize: '10px' }}>SRS DEFENSE</div>
+                                                    <div className="text-muted d-flex flex-wrap gap-1" style={{ fontSize: '11px' }}>
+                                                        {group.srsPanel.members?.map((m, i) => (
+                                                            <span key={i}>{m.firstName} {m.lastName}{i < group.srsPanel.members.length - 1 ? ',' : ''}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : group.proposalPanel ? (
+                                                <div className="small">
+                                                    <div className="fw-bold text-primary" style={{ fontSize: '10px' }}>PROPOSAL DEFENSE</div>
+                                                    <div className="text-muted d-flex flex-wrap gap-1" style={{ fontSize: '11px' }}>
+                                                        {group.proposalPanel.members?.map((m, i) => (
+                                                            <span key={i}>{m.firstName} {m.lastName}{i < group.proposalPanel.members.length - 1 ? ',' : ''}</span>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <span className="text-muted small italic">Not Assigned</span>

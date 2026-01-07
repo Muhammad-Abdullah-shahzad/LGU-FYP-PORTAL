@@ -33,27 +33,33 @@ const StudentDashboard = () => {
     }, []);
 
     const fetchData = async () => {
-        try {
-            // Fetch student's group
-            const groupRes = await api.get('/groups/my-group');
-            let targetSemester = 7; // Default to 7
+        let targetSemester = 7;
 
-            if (groupRes.data && groupRes.data.group) {
-                setGroup(groupRes.data.group);
-                targetSemester = groupRes.data.group.semester || 7;
+        try {
+            // First, try to fetch student's group
+            const groupRes = await api.get('/groups/my-group');
+            if (groupRes.data) {
+                setGroup(groupRes.data);
+                targetSemester = groupRes.data.semester || 7;
                 setStats({
                     hasGroup: true,
-                    proposalSubmitted: !!groupRes.data.group.proposal,
-                    supervisorAssigned: groupRes.data.group.supervisorStatus === 'approved',
-                    defenseScheduled: !!groupRes.data.group.defensePanel
+                    proposalSubmitted: !!groupRes.data.proposal,
+                    supervisorAssigned: groupRes.data.supervisorStatus === 'approved',
+                    defenseScheduled: !!groupRes.data.defensePanel
                 });
             }
+        } catch (error) {
+            // 404 is expected if student has no group
+            console.log('Group not found, using default semester');
+        }
 
-            // Fetch active timeline
+        try {
+            // Fetch active timeline for the target semester
+            // Since we don't have batch/year yet, we get current active one for that sem
             const timelineRes = await api.get(`/timeline/active/${targetSemester}`);
             setTimeline(timelineRes.data);
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching timeline:', error);
         } finally {
             setLoading(false);
         }
@@ -83,10 +89,30 @@ const StudentDashboard = () => {
                 {/* Stats Grid */}
                 <div className="row g-4 mb-5">
                     {[
-                        { label: 'Group Formation', icon: <HiOutlineUserGroup size={24} />, status: stats.hasGroup ? 'Completed' : 'Pending', color: stats.hasGroup ? 'success' : 'warning' },
-                        { label: 'Proposal Submission', icon: <HiOutlineDocumentText size={24} />, status: stats.proposalSubmitted ? 'Submitted' : 'Pending', color: stats.proposalSubmitted ? 'success' : 'warning' },
-                        { label: 'Supervisor Assigned', icon: <HiOutlineUser size={24} />, status: stats.supervisorAssigned ? 'Assigned' : 'Pending', color: stats.supervisorAssigned ? 'success' : 'warning' },
-                        { label: 'Defense Scheduled', icon: <HiOutlineAcademicCap size={24} />, status: stats.defenseScheduled ? 'Scheduled' : 'Upcoming', color: stats.defenseScheduled ? 'success' : 'info' }
+                        {
+                            label: 'Group Formation',
+                            icon: <HiOutlineUserGroup size={24} />,
+                            status: stats.hasGroup ? 'Completed' : (timeline?.groupRegistrationStatus === 'Open' ? 'Active' : 'Pending'),
+                            color: stats.hasGroup ? 'success' : (timeline?.groupRegistrationStatus === 'Open' ? 'primary' : 'warning')
+                        },
+                        {
+                            label: 'Proposal Submission',
+                            icon: <HiOutlineDocumentText size={24} />,
+                            status: stats.proposalSubmitted ? 'Submitted' : (timeline?.semester === 7 && (new Date() >= new Date(timeline?.proposalSubmissionStart) && new Date() <= new Date(timeline?.proposalSubmissionEnd)) ? 'Active' : 'Pending'),
+                            color: stats.proposalSubmitted ? 'success' : (timeline?.semester === 7 && (new Date() >= new Date(timeline?.proposalSubmissionStart) && new Date() <= new Date(timeline?.proposalSubmissionEnd)) ? 'primary' : 'warning')
+                        },
+                        {
+                            label: 'Supervisor Assigned',
+                            icon: <HiOutlineUser size={24} />,
+                            status: stats.supervisorAssigned ? 'Assigned' : 'Pending',
+                            color: stats.supervisorAssigned ? 'success' : 'warning'
+                        },
+                        {
+                            label: 'Defense Scheduled',
+                            icon: <HiOutlineAcademicCap size={24} />,
+                            status: stats.defenseScheduled ? 'Scheduled' : 'Upcoming',
+                            color: stats.defenseScheduled ? 'success' : 'info'
+                        }
                     ].map((item, index) => (
                         <div key={index} className="col-md-6 col-xl-3">
                             <StatsCard
@@ -162,30 +188,31 @@ const StudentDashboard = () => {
                         <div className="card border-0 shadow-sm rounded-4 h-100">
                             <div className="card-header bg-transparent border-0 pt-3 px-3">
                                 <h6 className="fw-bold m-0 font-outfit text-dark">Current Timeline</h6>
-                                <p className="small text-muted m-0">{timeline ? `${timeline.batch} ${timeline.year} - Semester ${timeline.semester}` : 'Loading...'}</p>
+                                <p className="small text-muted m-0">{timeline ? `${timeline.batch}-${timeline.batchYear} (Sem ${timeline.semester})` : 'Loading...'}</p>
                             </div>
                             <div className="card-body p-3">
                                 {timeline ? (
                                     <div className="timeline-v2">
                                         {[
-                                            { name: 'Group Registration', start: timeline.groupRegistrationStart, end: timeline.groupRegistrationEnd, color: 'primary' },
+                                            { name: 'Group Registration', start: timeline.groupRegistrationStart, end: timeline.groupRegistrationEnd, status: timeline.groupRegistrationStatus, color: 'primary' },
                                             ...(timeline.semester === 7 ? [
-                                                { name: 'Proposal Submission', start: timeline.proposalSubmissionStart, end: timeline.proposalSubmissionEnd, color: 'info' },
-                                                { name: 'Proposal Defense', start: timeline.proposalDefenseStart, end: timeline.proposalDefenseEnd, color: 'success' },
-                                                { name: 'Internal Defense', start: timeline.internalDefenseStart, end: timeline.internalDefenseEnd, color: 'warning' }
+                                                { name: 'Proposal Submission', start: timeline.proposalSubmissionStart, end: timeline.proposalSubmissionEnd, status: timeline.proposalSubmissionStatus, color: 'info' },
+                                                { name: 'Proposal Defense', start: timeline.proposalDefenseStart, end: timeline.proposalDefenseEnd, status: timeline.proposalDefenseStatus, color: 'success' },
+                                                { name: 'Internal Defense', start: timeline.internalDefenseStart, end: timeline.internalDefenseEnd, status: timeline.internalDefenseStatus, color: 'warning' }
                                             ] : [
-                                                { name: 'SRS Defense', start: timeline.srsDefenseStart, end: timeline.srsDefenseEnd, color: 'info' },
-                                                { name: 'External Defense', start: timeline.externalDefenseStart, end: timeline.externalDefenseEnd, color: 'danger' }
+                                                { name: 'SRS Defense', start: timeline.srsDefenseStart, end: timeline.srsDefenseEnd, status: timeline.srsDefenseStatus, color: 'info' }
                                             ])
                                         ].map((phase, idx) => {
                                             const endDate = new Date(phase.end);
                                             endDate.setHours(23, 59, 59, 999);
                                             const isPast = endDate < new Date();
-                                            const isNow = new Date() >= new Date(phase.start) && new Date() <= endDate;
+
+                                            // Respect manual status if it exists, otherwise use dates
+                                            const isNow = phase.status ? phase.status === 'Open' : (new Date() >= new Date(phase.start) && new Date() <= endDate);
 
                                             return (
                                                 <div key={idx} className={`mb-4 position-relative ps-4 border-start border-2 ${isNow ? 'border-primary' : (isPast ? 'border-success' : 'border-light font-italic')}`}>
-                                                    <div className={`position-absolute top-0 start-0 translate-middle rounded-circle border-4 border-white shadow-sm bg-${isPast ? 'success' : (isNow ? 'primary' : 'secondary')}`} style={{ width: '18px', height: '18px', marginLeft: '-1px' }}></div>
+                                                    <div className={`position-absolute top-0 start-0 translate-middle rounded-circle border-4 border-white shadow-sm bg-${isPast ? 'success' : (isNow ? 'primary' : 'secondary')} ${isNow ? 'dot-pulse' : ''}`} style={{ width: '18px', height: '18px', marginLeft: '-1px' }}></div>
                                                     <h6 className={`fw-bold mb-1 ${isNow ? 'text-primary' : (isPast ? 'text-success' : 'text-muted')}`}>
                                                         {phase.name}
                                                         {isNow && <span className="badge bg-primary rounded-pill ms-2 fw-normal" style={{ fontSize: '0.6rem' }}>ACTIVE</span>}

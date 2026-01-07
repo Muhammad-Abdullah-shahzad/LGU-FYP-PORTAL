@@ -36,10 +36,22 @@ const userSchema = new mongoose.Schema({
         sparse: true,
         unique: true
     },
+    // For students
+    batch: {
+        type: String,
+        enum: ['Fall', 'Spring']
+    },
+    enrolledYear: {
+        type: Number
+    },
+    semester: {
+        type: Number,
+        default: 7
+    },
     // For supervisors and panel members
     domain: [{
         type: String,
-        enum: ['AI', 'ML', 'DL', 'CV', 'NLP', 'LLM', 'Web', 'Mobile', 'Desktop', 'AR', 'VR', 'Game', 'Software Engineering', 'Artificial Intelligence', 'Data Science']
+        enum: ['AI', 'ML', 'Deep Learning', 'CV', 'NLP', 'LLM', 'Web Development', 'Mobile Development', 'Desktop', 'AR/VR', 'Game', 'Software Engineering', 'Artificial Intelligence', 'Data Science', 'Cybersecurity']
     }],
     designation: {
         type: String,

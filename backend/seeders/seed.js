@@ -73,14 +73,16 @@ const users = [
         isActive: true
     },
 
-    // Students
+    // Students (Batch 2023, Semester 7)
     {
         email: 'student1@lgu.edu.pk',
         password: 'password123',
         role: 'student',
         firstName: 'Hassan',
         lastName: 'Ali',
-        registrationNumber: 'L1F21BSCS0001',
+        batch: 'Fall',
+        enrolledYear: 2023,
+        semester: 7,
         isActive: true
     },
     {
@@ -89,7 +91,9 @@ const users = [
         role: 'student',
         firstName: 'Zainab',
         lastName: 'Fatima',
-        registrationNumber: 'L1F21BSCS0002',
+        batch: 'Fall',
+        enrolledYear: 2023,
+        semester: 7,
         isActive: true
     },
     {
@@ -98,7 +102,9 @@ const users = [
         role: 'student',
         firstName: 'Usman',
         lastName: 'Ahmed',
-        registrationNumber: 'L1F21BSCS0003',
+        batch: 'Spring',
+        enrolledYear: 2024,
+        semester: 7,
         isActive: true
     },
     {
@@ -107,36 +113,42 @@ const users = [
         role: 'student',
         firstName: 'Maryam',
         lastName: 'Khan',
-        registrationNumber: 'L1F21BSCS0004',
+        batch: 'Spring',
+        enrolledYear: 2024,
+        semester: 7,
         isActive: true
     }
 ];
 
 const timelines = [
     {
-        batch: 'Spring',
-        year: 2025,
+        batch: 'Fall',
+        batchYear: 2023,
+        year: 2026,
         semester: 7,
-        groupRegistrationStart: new Date('2025-01-15'),
-        groupRegistrationEnd: new Date('2025-01-31'),
-        proposalSubmissionStart: new Date('2025-02-01'),
-        proposalSubmissionEnd: new Date('2025-02-21'),
-        proposalDefenseStart: new Date('2025-02-22'),
-        proposalDefenseEnd: new Date('2025-03-07'),
-        internalDefenseStart: new Date('2025-04-01'),
-        internalDefenseEnd: new Date('2025-04-14'),
+        groupRegistrationStatus: 'Open',
+        groupRegistrationStart: new Date('2026-01-07'),
+        groupRegistrationEnd: new Date('2026-01-31'),
+        proposalSubmissionStart: new Date('2026-02-01'),
+        proposalSubmissionEnd: new Date('2026-02-21'),
+        proposalDefenseStatus: 'Closed',
+        proposalDefenseStart: new Date('2026-02-22'),
+        proposalDefenseEnd: new Date('2026-03-07'),
+        internalDefenseStatus: 'Closed',
+        internalDefenseStart: new Date('2026-04-01'),
+        internalDefenseEnd: new Date('2026-04-14'),
         isActive: true
     },
     {
         batch: 'Spring',
-        year: 2025,
-        semester: 8,
-        groupRegistrationStart: new Date('2025-01-15'),
-        groupRegistrationEnd: new Date('2025-01-31'),
-        srsDefenseStart: new Date('2025-03-15'),
-        srsDefenseEnd: new Date('2025-03-30'),
-        externalDefenseStart: new Date('2025-05-15'),
-        externalDefenseEnd: new Date('2025-05-31'),
+        batchYear: 2024,
+        year: 2026,
+        semester: 7,
+        groupRegistrationStatus: 'Open',
+        groupRegistrationStart: new Date('2026-01-15'),
+        groupRegistrationEnd: new Date('2026-02-15'),
+        proposalSubmissionStart: new Date('2026-02-16'),
+        proposalSubmissionEnd: new Date('2026-03-10'),
         isActive: true
     }
 ];
@@ -149,7 +161,15 @@ const seedDatabase = async () => {
 
         console.log('🗑️  Clearing existing data...');
 
-        // Clear existing data
+        // Clear existing data and drop stale indexes
+        try {
+            await User.collection.dropIndexes();
+            await Timeline.collection.dropIndexes();
+            console.log('🧹 Old indexes dropped');
+        } catch (e) {
+            console.log('ℹ️ No indexes to drop or collection empty');
+        }
+
         await User.deleteMany({});
         await Timeline.deleteMany({});
 
@@ -171,7 +191,7 @@ const seedDatabase = async () => {
 
         const createdTimelines = await Timeline.insertMany(timelineData);
         createdTimelines.forEach(t => {
-            console.log(`✅ Created timeline for ${t.batch} ${t.year}, Semester ${t.semester}`);
+            console.log(`✅ Created timeline for ${t.batch}-${t.batchYear} (Academic Year ${t.year}), Semester ${t.semester}`);
         });
 
         console.log('\n✨ Database seeded successfully!\n');

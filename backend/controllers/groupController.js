@@ -7,7 +7,7 @@ import Timeline from '../models/Timeline.js';
 // @access  Private/Student
 export const createGroup = async (req, res) => {
     try {
-        const { student2Email, projectTitle, projectDomain, projectSummary, batch, year, semester } = req.body;
+        const { student2Email, projectTitle, projectDomain, projectSummary, batch, year, semester, batchYear } = req.body;
 
         // Check if registration window is open
         const timeline = await Timeline.findOne({
@@ -79,6 +79,7 @@ export const createGroup = async (req, res) => {
             projectSummary,
             batch,
             year: parseInt(year),
+            batchYear: parseInt(batchYear),
             semester: parseInt(semester) || 7,
             registrationDeadline: timeline.groupRegistrationEnd
         });
@@ -229,18 +230,25 @@ export const requestSupervisor = async (req, res) => {
 // @access  Private/Coordinator
 export const getAllGroups = async (req, res) => {
     try {
-        const { batch, year, status, semester } = req.query;
+        const { batch, year, status, semester, batchYear } = req.query;
 
         const filter = {};
         if (batch) filter.batch = batch;
         if (year) filter.year = parseInt(year);
+        if (batchYear) filter.batchYear = parseInt(batchYear);
         if (status) filter.status = status;
         if (semester) filter.semester = parseInt(semester);
 
         const groups = await Group.find(filter)
             .populate('student1 student2', 'firstName lastName email registrationNumber')
             .populate('supervisor', 'firstName lastName email domain')
-            .populate('proposalPanel internalPanel srsPanel externalPanel')
+            .populate({
+                path: 'proposalPanel internalPanel srsPanel externalPanel',
+                populate: {
+                    path: 'members',
+                    select: 'firstName lastName'
+                }
+            })
             .sort({ createdAt: -1 });
 
         res.json({

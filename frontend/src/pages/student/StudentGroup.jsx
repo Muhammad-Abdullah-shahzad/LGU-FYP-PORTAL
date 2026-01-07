@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 import './StudentGroup.css';
 import {
     HiOutlineUserGroup,
@@ -11,7 +12,9 @@ import {
     HiOutlinePlus,
     HiOutlineUserCircle,
     HiOutlineBookOpen,
-    HiOutlineUser
+    HiOutlineUser,
+    HiOutlineLockClosed,
+    HiOutlineClock
 } from 'react-icons/hi';
 
 const StudentGroup = () => {
@@ -26,11 +29,13 @@ const StudentGroup = () => {
         student2Email: '',
         batch: '',
         year: '',
+        batchYear: '',
         semester: 7
     });
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchInitialData();
@@ -49,14 +54,24 @@ const StudentGroup = () => {
 
         try {
             const timelineRes = await api.get('/timeline?isActive=true');
-            const timelines = timelineRes.data.timelines || [];
+            const timelines = (timelineRes.data.timelines || []).filter(t => t.groupRegistrationStatus === 'Open');
             setActiveTimelines(timelines);
+
             if (timelines.length > 0) {
+                // Try to find timeline matching student's batch and enrolledYear
+                const studentMatch = timelines.find(t =>
+                    t.batch === user?.batch &&
+                    t.batchYear === user?.enrolledYear
+                );
+
+                const defaultTimeline = studentMatch || timelines[0];
+
                 setFormData(prev => ({
                     ...prev,
-                    batch: timelines[0].batch,
-                    year: timelines[0].year,
-                    semester: timelines[0].semester
+                    batch: defaultTimeline.batch,
+                    year: defaultTimeline.year,
+                    batchYear: defaultTimeline.batchYear,
+                    semester: defaultTimeline.semester
                 }));
             }
         } catch (err) {
@@ -121,7 +136,7 @@ const StudentGroup = () => {
                                         </div>
                                         <div className="col-md-6">
                                             <label className="x-small text-muted fw-bold text-uppercase d-block mb-1">Academic Batch</label>
-                                            <p className="mb-0 fw-bold">{group.batch} {group.year} (Sem {group.semester})</p>
+                                            <p className="mb-0 fw-bold">{group.batch}-{group.batchYear || group.year} (Sem {group.semester})</p>
                                         </div>
                                     </div>
                                     <div className="mb-0">
@@ -145,7 +160,6 @@ const StudentGroup = () => {
                                                     </div>
                                                     <div>
                                                         <h6 className="fw-bold mb-0 small">{student.firstName} {student.lastName}</h6>
-                                                        <p className="x-small text-muted mb-0">{student.registrationNumber}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -182,7 +196,7 @@ const StudentGroup = () => {
                             </div>
                         </div>
                     </div>
-                ) : (
+                ) : activeTimelines.length > 0 ? (
                     <div className="row justify-content-center">
                         <div className="col-lg-8">
                             <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -219,35 +233,42 @@ const StudentGroup = () => {
                                                     <option value="Artificial Intelligence">Artificial Intelligence</option>
                                                     <option value="Data Science">Data Science</option>
                                                     <option value="Cybersecurity">Cybersecurity</option>
+                                                    <option value="Web Development">Web Development</option>
+                                                    <option value="Mobile Development">Mobile Development</option>
+                                                    <option value="AR/VR">AR/VR</option>
                                                 </select>
                                             </div>
                                             <div className="col-md-6">
                                                 <label className="form-label x-small text-muted fw-bold text-uppercase">Active Timeline</label>
                                                 <select
                                                     className="form-select rounded-3 p-3 bg-light border-0 shadow-sm"
-                                                    value={`${formData.batch}-${formData.year}-${formData.semester}`}
+                                                    value={`${formData.batch}-${formData.year}-${formData.batchYear}-${formData.semester}`}
                                                     onChange={(e) => {
-                                                        const [batch, year, sem] = e.target.value.split('-');
-                                                        setFormData({ ...formData, batch, year, semester: parseInt(sem) });
+                                                        const [batch, year, bYear, sem] = e.target.value.split('-');
+                                                        setFormData({ ...formData, batch, year: parseInt(year), batchYear: parseInt(bYear), semester: parseInt(sem) });
                                                     }}
                                                     required
                                                 >
                                                     {activeTimelines.map(t => (
-                                                        <option key={t._id} value={`${t.batch}-${t.year}-${t.semester}`}>
-                                                            {t.batch} {t.year} (Sem {t.semester})
+                                                        <option key={t._id} value={`${t.batch}-${t.year}-${t.batchYear}-${t.semester}`}>
+                                                            {t.batch}-{t.batchYear} (Sem {t.semester})
                                                         </option>
                                                     ))}
-                                                    {activeTimelines.length === 0 && <option disabled>No active registration phase</option>}
                                                 </select>
                                                 {activeTimelines.length > 0 && (
                                                     <div className="mt-2 px-2">
                                                         {(() => {
-                                                            const selected = activeTimelines.find(t => `${t.batch}-${t.year}-${t.semester}` === `${formData.batch}-${formData.year}-${formData.semester}`);
+                                                            const selected = activeTimelines.find(t => `${t.batch}-${t.year}-${t.batchYear}-${t.semester}` === `${formData.batch}-${formData.year}-${formData.batchYear}-${formData.semester}`);
                                                             if (selected) {
                                                                 return (
-                                                                    <small className="text-primary fw-bold" style={{ fontSize: '0.7rem' }}>
-                                                                        Registration Window: {formatDate(selected.groupRegistrationStart)} - {formatDate(selected.groupRegistrationEnd)}
-                                                                    </small>
+                                                                    <div className="d-flex flex-column gap-1">
+                                                                        <small className="text-primary fw-bold" style={{ fontSize: '0.7rem' }}>
+                                                                            Registration Window: {formatDate(selected.groupRegistrationStart)} - {formatDate(selected.groupRegistrationEnd)}
+                                                                        </small>
+                                                                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>
+                                                                            Academic Session: {selected.year}
+                                                                        </small>
+                                                                    </div>
                                                                 );
                                                             }
                                                             return null;
@@ -284,6 +305,25 @@ const StudentGroup = () => {
                                             </div>
                                         </div>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="row justify-content-center py-5">
+                        <div className="col-lg-6 text-center">
+                            <div className="fallback-ui-card p-5 bg-white shadow-sm rounded-4 border-0">
+                                <div className="icon-wrapper mb-4 text-warning">
+                                    <HiOutlineLockClosed size={80} className="bg-warning bg-opacity-10 p-3 rounded-circle" />
+                                </div>
+                                <h3 className="fw-bold font-outfit text-dark mb-3">Registration Closed</h3>
+                                <p className="text-muted mb-4 px-4">
+                                    Group registration hasn't started yet for your batch. The portal is currently locked by the coordinator.
+                                    Please check with the FYP office or wait for the official notification.
+                                </p>
+                                <div className="d-flex align-items-center justify-content-center gap-2 text-primary fw-bold small">
+                                    <HiOutlineClock size={18} />
+                                    <span>Check back later for updates</span>
                                 </div>
                             </div>
                         </div>
