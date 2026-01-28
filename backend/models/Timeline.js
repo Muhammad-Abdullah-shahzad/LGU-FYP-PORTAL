@@ -47,6 +47,22 @@ const timelineSchema = new mongoose.Schema({
         default: 'Closed'
     },
 
+    reProposalSubmissionStart: Date,
+    reProposalSubmissionEnd: Date,
+    reProposalSubmissionStatus: {
+        type: String,
+        enum: ['Open', 'Closed'],
+        default: 'Closed'
+    },
+
+    reProposalDefenseStart: Date,
+    reProposalDefenseEnd: Date,
+    reProposalDefenseStatus: {
+        type: String,
+        enum: ['Open', 'Closed'],
+        default: 'Closed'
+    },
+
     internalDefenseStart: Date,
     internalDefenseEnd: Date,
     internalDefenseStatus: {

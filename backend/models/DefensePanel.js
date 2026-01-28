@@ -8,7 +8,7 @@ const defensePanelSchema = new mongoose.Schema({
     },
     panelType: {
         type: String,
-        enum: ['proposal', 'internal', 'srs', 'external'],
+        enum: ['proposal', 're-proposal', 'internal', 'srs', 'external'],
         required: true
     },
     members: [{
@@ -67,6 +67,7 @@ defensePanelSchema.pre('validate', async function (next) {
 
         const typePrefix = {
             'proposal': 'PP',
+            're-proposal': 'RP',
             'internal': 'IP',
             'srs': 'SP',
             'external': 'EP'

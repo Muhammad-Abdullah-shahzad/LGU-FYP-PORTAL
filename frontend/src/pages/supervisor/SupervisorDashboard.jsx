@@ -9,11 +9,10 @@ import {
     HiOutlineAcademicCap,
     HiOutlineChevronRight,
     HiOutlineBell,
-    HiOutlineClipboardList
+    HiOutlineClipboardList,
+    HiOutlineArrowRight
 } from 'react-icons/hi';
 import './SupervisorDashboard.css';
-
-import StatsCard from '../../components/StatsCard';
 
 const SupervisorDashboard = () => {
     const { user } = useAuth();
@@ -37,7 +36,7 @@ const SupervisorDashboard = () => {
 
                 let studentCount = 0;
                 myGroups.forEach(group => {
-                    studentCount += 1; // student1
+                    studentCount += 1;
                     if (group.student2) studentCount += 1;
                 });
 
@@ -57,118 +56,114 @@ const SupervisorDashboard = () => {
     }, []);
 
     if (loading) return (
-        <DashboardLayout title="Loading...">
-            <div className="d-flex justify-content-center p-5">
-                <div className="spinner-border text-primary" role="status"></div>
+        <DashboardLayout title="Supervisor Control">
+            <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
+                <div className="spinner-border text-primary spinner-border-sm" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
             </div>
         </DashboardLayout>
     );
 
     return (
-        <DashboardLayout title={`Welcome, ${user?.firstName}!`}>
-            <div className="container-fluid p-0">
-                <div className="row g-4 mb-5">
-                    <div className="col-md-4">
-                        <StatsCard
-                            title="Pending Requests"
-                            value={stats.pendingRequests}
-                            icon={<HiOutlineMail size={28} />}
-                            color="warning"
-                            subtitle="Requires Action"
-                        />
-                    </div>
-
-                    <div className="col-md-4">
-                        <StatsCard
-                            title="Active Groups"
-                            value={stats.activeGroups}
-                            icon={<HiOutlineUserGroup size={28} />}
-                            color="success"
-                            subtitle="Ongoing FYP"
-                        />
-                    </div>
-
-                    <div className="col-md-4">
-                        <StatsCard
-                            title="Supervised Students"
-                            value={stats.totalStudents}
-                            icon={<HiOutlineAcademicCap size={28} />}
-                            color="primary"
-                            subtitle="Total Enrolled"
-                        />
-                    </div>
+        <DashboardLayout title="Supervisor Dashboard">
+            <div className="supervisor-container">
+                {/* Header Section */}
+                <div className="mb-4">
+                    <h5 className="fw-bold text-dark mb-1">Welcome, {user?.firstName}</h5>
+                    <p className="text-muted small">Overview of your supervision requests and assigned FYP groups.</p>
                 </div>
 
-
-                <div className="row mb-3">
-                    <div className="col-12">
-                        <h6 className="fw-bold mb-3 font-outfit text-dark">Quick Management Actions</h6>
-                        <div className="row g-4">
-                            <div className="col-sm-6 col-md-4 col-lg-3">
-                                <div
-                                    className="card action-card border-0 shadow-sm rounded-4 h-100 p-3 cursor-pointer"
-                                    onClick={() => window.location.href = '/supervisor/requests'}
-                                >
-                                    <div className="card-body">
-                                        <div className="action-icon-wrapper bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center mb-4">
-                                            <HiOutlineMail size={24} />
-                                        </div>
-                                        <h6 className="fw-bold text-dark mb-2">Review Requests</h6>
-                                        <p className="text-muted small mb-3">Handle incoming supervision requests from student groups.</p>
-                                        <div className="text-primary fw-bold small d-flex align-items-center">
-                                            View Requests <span className="ms-2">→</span>
-                                        </div>
-                                    </div>
-                                </div>
+                {/* Stats Grid */}
+                <div className="stats-grid">
+                    {[
+                        { label: 'Pending Requests', value: stats.pendingRequests, icon: <HiOutlineMail />, color: 'warning' },
+                        { label: 'Active Groups', value: stats.activeGroups, icon: <HiOutlineUserGroup />, color: 'success' },
+                        { label: 'Supervised Students', value: stats.totalStudents, icon: <HiOutlineAcademicCap />, color: 'primary' }
+                    ].map((item, index) => (
+                        <div key={index} className={`stat-card-minimal stat-${item.color}`}>
+                            <div className="stat-icon-minimal">{item.icon}</div>
+                            <div className="stat-content-minimal">
+                                <h3>{item.label}</h3>
+                                <p>{item.value}</p>
                             </div>
+                        </div>
+                    ))}
+                </div>
 
-                            <div className="col-sm-6 col-md-4 col-lg-3">
-                                <div
-                                    className="card action-card border-0 shadow-sm rounded-4 h-100 p-3 cursor-pointer"
-                                    onClick={() => window.location.href = '/supervisor/groups'}
-                                >
-                                    <div className="card-body">
-                                        <div className="action-icon-wrapper bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center mb-4">
-                                            <HiOutlineUserGroup size={24} />
-                                        </div>
-                                        <h6 className="fw-bold text-dark mb-2">Manage Groups</h6>
-                                        <p className="text-muted small mb-3">Monitor and guide your assigned final year project groups.</p>
-                                        <div className="text-success fw-bold small d-flex align-items-center">
-                                            Manage Groups <span className="ms-2">→</span>
-                                        </div>
-                                    </div>
-                                </div>
+                {/* Management Hub */}
+                <div className="mb-4">
+                    <h6 className="section-title mb-3">Management Command Center</h6>
+                    <div className="action-grid-minimal">
+                        <div className="action-card-minimal" onClick={() => window.location.href = '/supervisor/requests'}>
+                            <div className="action-icon-minimal">
+                                <HiOutlineMail size={18} />
+                            </div>
+                            <h6>Supervision Requests</h6>
+                            <p>Review and accept incoming group invitations for FYP supervision.</p>
+                            <div className="mt-3 d-flex align-items-center text-primary fw-bold" style={{ fontSize: '0.65rem' }}>
+                                VIEW REQUESTS <HiOutlineArrowRight className="ms-1" size={12} />
+                            </div>
+                        </div>
+
+                        <div className="action-card-minimal" onClick={() => window.location.href = '/supervisor/groups'}>
+                            <div className="action-icon-minimal">
+                                <HiOutlineUserGroup size={18} />
+                            </div>
+                            <h6>Assigned Groups</h6>
+                            <p>Monitor progress and provide technical guidance to your active project teams.</p>
+                            <div className="mt-3 d-flex align-items-center text-primary fw-bold" style={{ fontSize: '0.65rem' }}>
+                                MANAGE GROUPS <HiOutlineArrowRight className="ms-1" size={12} />
+                            </div>
+                        </div>
+
+                        <div className="action-card-minimal">
+                            <div className="action-icon-minimal">
+                                <HiOutlineClipboardList size={18} />
+                            </div>
+                            <h6>Evaluations</h6>
+                            <p>Track project documentation, SRS reviews, and upcoming internal defenses.</p>
+                            <div className="mt-3 d-flex align-items-center text-muted fw-bold" style={{ fontSize: '0.65rem' }}>
+                                COMING SOON
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="row">
+                {/* Notifications & Recent Activity */}
+                <div className="row g-4 pb-4">
                     <div className="col-lg-8">
-                        <div className="card border-0 shadow-sm rounded-4 p-3">
-                            <h6 className="fw-bold mb-3 font-outfit text-dark">Recent Notifications</h6>
-                            <div className="list-group list-group-flush">
+                        <div className="notification-box h-100">
+                            <h6 className="section-title mb-3">Recent Notifications</h6>
+                            <div className="notification-list">
                                 {stats.pendingRequests > 0 ? (
-                                    <div className="list-group-item px-0 py-3 border-0 border-bottom">
-                                        <div className="d-flex align-items-center">
-                                            <div className="rounded-circle bg-warning bg-opacity-10 p-2 me-3 text-warning">
-                                                <HiOutlineBell size={20} />
-                                            </div>
-                                            <div>
-                                                <p className="mb-0 fw-bold">Pending Supervision Requests</p>
-                                                <p className="mb-0 small text-muted">You have <strong>{stats.pendingRequests}</strong> groups waiting for your approval.</p>
-                                            </div>
-                                            <Link to="/supervisor/requests" className="ms-auto btn btn-light btn-sm rounded-pill px-3 py-1 fw-bold">
-                                                View <HiOutlineChevronRight size={14} />
-                                            </Link>
+                                    <div className="notification-item">
+                                        <div className="notif-icon">
+                                            <HiOutlineBell size={16} />
                                         </div>
+                                        <div className="notif-content">
+                                            <p>Pending Group Requests</p>
+                                            <span>You have {stats.pendingRequests} groups awaiting your approval.</span>
+                                        </div>
+                                        <button className="view-btn-minimal" onClick={() => window.location.href = '/supervisor/requests'}>
+                                            View
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="text-center py-4">
-                                        <p className="text-muted small">No new notifications. Everything is up to date!</p>
+                                        <p className="text-muted small m-0">No new notifications. All requests handled.</p>
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="col-lg-4">
+                        <div className="glass-card bg-primary bg-opacity-5 border-primary border-opacity-10">
+                            <h6 className="section-title mb-2">Faculty Tip</h6>
+                            <p className="text-muted m-0" style={{ fontSize: '0.7rem', lineHeight: '1.5' }}>
+                                Regular meetings with your FYP groups increase success rates. Use the evaluation module to keep track of weekly milestones.
+                            </p>
                         </div>
                     </div>
                 </div>

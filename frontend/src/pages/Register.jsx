@@ -11,10 +11,11 @@ const Register = () => {
         role: 'student',
         firstName: '',
         lastName: '',
-        registrationNumber: '',
-        batch: 'Fall',
+        rollSequence: '',
+        batch: 'Fa',
         enrolledYear: new Date().getFullYear(),
         semester: 7,
+        degree: 'BSCS',
         domain: '',
         designation: ''
     });
@@ -135,10 +136,31 @@ const Register = () => {
                                     style={{ borderRadius: '0.75rem' }}
                                     required
                                 >
-                                    <option value="Fall">Fall</option>
-                                    <option value="Spring">Spring</option>
+                                    <option value="Fa">Fa (Fall)</option>
+                                    <option value="Sp">Sp (Spring)</option>
                                 </select>
                             </div>
+                            <div className="col-md-6">
+                                <label className="form-label small fw-semibold text-secondary">Degree *</label>
+                                <select
+                                    className="form-select border-0 bg-light fs-6"
+                                    name="degree"
+                                    value={formData.degree}
+                                    onChange={handleChange}
+                                    style={{ borderRadius: '0.75rem' }}
+                                    required
+                                >
+                                    <option value="BSCS">BSCS</option>
+                                    <option value="BSSE">BSSE</option>
+                                    <option value="BSIT">BSIT</option>
+                                    <option value="BSAI">BS AI</option>
+                                    <option value="BSDS">BS DS</option>
+                                    <option value="BSCY">BS CY</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="row g-3 mb-3">
                             <div className="col-md-6">
                                 <label className="form-label small fw-semibold text-secondary">Enrollment Year *</label>
                                 <select
@@ -151,6 +173,25 @@ const Register = () => {
                                 >
                                     {years.map(y => <option key={y} value={y}>{y}</option>)}
                                 </select>
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label small fw-semibold text-secondary" htmlFor="rollSequence">Roll Sequence No *</label>
+                                <input
+                                    type="number"
+                                    className="form-control border-0 bg-light fs-6"
+                                    id="rollSequence"
+                                    name="rollSequence"
+                                    value={formData.rollSequence}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 158"
+                                    style={{ borderRadius: '0.75rem' }}
+                                    required
+                                />
+                                {formData.rollSequence && (
+                                    <div className="mt-1 x-small fw-bold text-primary">
+                                        Generated Roll No: {formData.batch}-{formData.enrolledYear}/{formData.degree}/{formData.rollSequence}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

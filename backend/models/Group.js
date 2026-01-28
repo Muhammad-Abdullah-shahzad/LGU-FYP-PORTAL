@@ -16,6 +16,16 @@ const groupSchema = new mongoose.Schema({
         ref: 'User',
         default: null
     },
+    student2Status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected', 'none'],
+        default: 'none'
+    },
+    leader: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     projectTitle: {
         type: String,
         required: [true, 'Project title is required'],
@@ -29,8 +39,8 @@ const groupSchema = new mongoose.Schema({
     projectSummary: {
         type: String,
         required: [true, 'Project summary is required'],
-        minlength: 50,
-        maxlength: 1000
+        minlength: 20,
+        maxlength: 2000
     },
     supervisor: {
         type: mongoose.Schema.Types.ObjectId,

@@ -1,213 +1,261 @@
+/* Glassmorphism & Minimalistic UI for Student Group */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 4px 20px 0 rgba(31, 38, 135, 0.04);
+    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --bg-blur: blur(8px);
+}
+
 .group-container {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 1400px;
+    margin: 0;
+    padding: 1rem 2rem;
+    animation: fadeInSlide 0.5s ease-out forwards;
 }
 
-.card {
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+.registration-header {
+    background: #fff;
     border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 15px;
+    padding: 1.5rem 2rem;
 }
 
-.card-header h2 {
-    font-size: 24px;
+.registration-header h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
     color: #1e293b;
+    margin: 0;
 }
 
-.subtitle {
+.registration-header p {
+    font-size: 0.75rem;
     color: #64748b;
-    margin-top: -20px;
-    margin-bottom: 30px;
+    margin: 0.25rem 0 0;
 }
 
-.detail-item {
-    margin-bottom: 20px;
-}
-
-.detail-item label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 4px;
-}
-
-.detail-item p {
-    font-size: 16px;
-    color: #1e293b;
-}
-
-.member-list {
-    list-style: none;
+.compact-form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 10px;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.25rem;
+    padding: 2rem;
 }
 
-.member-item {
-    background: #f8fafc;
-    padding: 12px 16px;
+/* Glass Card - Minimalist */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--bg-blur);
+    -webkit-backdrop-filter: var(--bg-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    height: 100%;
 }
 
-.member-info strong {
-    display: block;
+/* Section Titles - More subtle */
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
     color: #1e293b;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+    font-family: 'Outfit', sans-serif;
 }
 
-.member-info span {
-    font-size: 12px;
-    color: #64748b;
+/* Detail Styling - Cleaner */
+.detail-box {
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 0.85rem;
 }
 
-.supervisor-info {
+.detail-box label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.04em;
+}
+
+.detail-box p,
+.detail-box h4 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Specific fix for project summary text */
+.detail-box .summary-text {
+    line-height: 1.5;
+    display: block;
+}
+
+/* Member List - Compact */
+.team-member-card {
+    background: white;
+    padding: 0.75rem;
+    border-radius: 10px;
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 15px;
-    background: #f0f9ff;
-    border-radius: 12px;
+    gap: 0.75rem;
+    border: 1px solid #f1f5f9;
 }
 
-.avatar {
-    font-size: 32px;
-    background: #e0f2fe;
-    width: 60px;
-    height: 60px;
+.icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    font-size: 0.9rem;
+    background: #f1f5f9;
+    color: #64748b;
 }
 
-.badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: 11px;
+/* Form Elements - Minimalist Sharp */
+.modern-label {
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
-    margin-top: 5px;
-}
-
-.badge.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge.approved {
-    background: #dcfce7;
-    color: #166534;
-}
-
-/* Form Styles */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
+    color: #64748b;
+    margin-bottom: 0.4rem;
     display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #334155;
+    letter-spacing: 0.03em;
 }
 
-.form-group input,
-.form-group select {
+.modern-input,
+.modern-select,
+.modern-textarea {
     width: 100%;
-    padding: 12px;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 15px;
+    background: #fff;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s ease;
 }
 
-.member-input-row {
-    display: flex;
-    gap: 10px;
+.modern-input:focus,
+.modern-select:focus,
+.modern-textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.05);
 }
 
-.btn-add {
-    background: #1e293b;
-    color: white;
-    border: none;
-    padding: 0 20px;
-    border-radius: 8px;
+/* Role Cards - Sharper */
+.role-card {
+    flex: 1;
+    padding: 0.85rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: white;
     cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
 }
 
-.added-members {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+.role-card.active {
+    border-color: #4f46e5;
+    background: #f5f3ff;
 }
 
-.member-tag {
-    background: #e2e8f0;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
+/* Professional & Minimal Pro Tip */
+.tip-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.tip-card .tip-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.member-tag button {
-    background: none;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0;
-}
-
-.btn-submit {
-    width: 100%;
-    padding: 14px;
-    background: #6366f1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-}
-
-.error-alert {
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.success-alert {
-    background: #dcfce7;
-    color: #166534;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.mt-4 {
-    margin-top: 2rem;
-}
-
-.hint {
-    font-size: 13px;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
     color: #64748b;
-    font-style: italic;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tip-card .tip-content {
+    font-size: 0.7rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Modern Grid Sections */
+.form-section-title {
+    grid-column: span 12;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+    margin-bottom: -0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.5rem;
+}
+
+.span-12 {
+    grid-column: span 12;
+}
+
+.span-8 {
+    grid-column: span 8;
+}
+
+.span-6 {
+    grid-column: span 6;
+}
+
+.span-4 {
+    grid-column: span 4;
+}
+
+.span-3 {
+    grid-column: span 3;
+}
+
+/* Partner Grid Refinement */
+.partner-selection-grid {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+}
+
+/* Success Badge - Smaller */
+.badge-xs {
+    font-size: 0.55rem !important;
+    padding: 0.2rem 0.5rem !important;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -6,7 +6,7 @@ import { generateToken } from '../middleware/auth.js';
 // @access  Public
 export const register = async (req, res) => {
     try {
-        const { email, password, role, firstName, lastName, registrationNumber, batch, enrolledYear, semester, domain, designation } = req.body;
+        const { email, password, role, firstName, lastName, rollSequence, batch, enrolledYear, semester, domain, designation, degree } = req.body;
 
         // Only allow students to register via this endpoint
         if (role !== 'student') {
@@ -19,11 +19,16 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
 
-        // Check registration number for students
-        if (registrationNumber) {
-            const regExists = await User.findOne({ registrationNumber });
+        // Generate registration number (Roll No)
+        // Format: Fa-2023/BSSE/158
+        let generatedRegNo = undefined;
+        if (role === 'student' && rollSequence && batch && enrolledYear && degree) {
+            generatedRegNo = `${batch}-${enrolledYear}/${degree}/${rollSequence}`;
+
+            // Check if this generated roll number already exists
+            const regExists = await User.findOne({ registrationNumber: generatedRegNo });
             if (regExists) {
-                return res.status(400).json({ message: 'Registration number already exists' });
+                return res.status(400).json({ message: `Registration number ${generatedRegNo} already exists` });
             }
         }
 
@@ -34,6 +39,9 @@ export const register = async (req, res) => {
             role,
             firstName,
             lastName,
+            registrationNumber: generatedRegNo,
+            rollSequence: parseInt(rollSequence),
+            degree,
             batch,
             enrolledYear: parseInt(enrolledYear),
             semester: parseInt(semester) || 7

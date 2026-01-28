@@ -16,6 +16,7 @@ import CoordinatorPanels from './pages/coordinator/CoordinatorPanels';
 import PanelDashboard from './pages/panel/PanelDashboard';
 import PanelGroups from './pages/panel/PanelGroups';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
+import SupervisorEvaluations from './pages/supervisor/SupervisorEvaluations';
 import './App.css';
 
 
@@ -120,6 +121,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['supervisor']}>
                 <SupervisorGroups />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/evaluations"
+            element={
+              <ProtectedRoute allowedRoles={['supervisor', 'panel_member']}>
+                <SupervisorEvaluations />
               </ProtectedRoute>
             }
           />

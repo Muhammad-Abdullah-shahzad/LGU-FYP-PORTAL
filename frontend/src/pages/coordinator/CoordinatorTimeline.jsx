@@ -117,7 +117,7 @@ const CoordinatorTimeline = () => {
         const start = timeline[`${phase}Start`] ? timeline[`${phase}Start`].split('T')[0] : '';
         const end = timeline[`${phase}End`] ? timeline[`${phase}End`].split('T')[0] : '';
 
-        const colClass = timeline.semester === 7 ? "col-md-6 col-lg-3" : "col-md-6";
+        const colClass = timeline.semester === 7 ? "col-md-6 col-xl-2" : "col-md-6";
 
         return (
             <div className={colClass}>
@@ -249,6 +249,20 @@ const CoordinatorTimeline = () => {
                                             title="Proposal Defense"
                                             icon={FaChalkboardTeacher}
                                             color="warning"
+                                        />
+                                        <PhaseCard
+                                            timeline={t}
+                                            phase="reProposalSubmission"
+                                            title="Re-Proposal Submission"
+                                            icon={FaFileContract}
+                                            color="info"
+                                        />
+                                        <PhaseCard
+                                            timeline={t}
+                                            phase="reProposalDefense"
+                                            title="Re-Proposal Defense"
+                                            icon={FaChalkboardTeacher}
+                                            color="danger"
                                         />
                                         <PhaseCard
                                             timeline={t}

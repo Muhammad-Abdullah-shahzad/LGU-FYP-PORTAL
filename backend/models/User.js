@@ -37,9 +37,13 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
     // For students
+    degree: {
+        type: String,
+        enum: ['BSCS', 'BSSE', 'BSIT', 'BSAI', 'BSDS', 'BSCY']
+    },
     batch: {
         type: String,
-        enum: ['Fall', 'Spring']
+        enum: ['Fall', 'Spring', 'Fa', 'Sp']
     },
     enrolledYear: {
         type: Number
@@ -47,6 +51,9 @@ const userSchema = new mongoose.Schema({
     semester: {
         type: Number,
         default: 7
+    },
+    rollSequence: {
+        type: Number
     },
     // For supervisors and panel members
     domain: [{
