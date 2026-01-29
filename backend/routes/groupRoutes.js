@@ -14,7 +14,8 @@ import {
     getSupervisorEvaluations,
     evaluateGroup,
     getInvitations,
-    respondToInvitation
+    respondToInvitation,
+    rejoinBatch
 } from '../controllers/groupController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -31,6 +32,7 @@ router.put('/:id/details', protect, authorize('student'), updateGroupDetails);
 router.post('/:id/request-supervisor', protect, authorize('student'), requestSupervisor);
 router.get('/invitations', protect, authorize('student'), getInvitations);
 router.put('/:id/invitation-response', protect, authorize('student'), respondToInvitation);
+router.post('/:id/rejoin', protect, authorize('student'), rejoinBatch);
 
 // Supervisor routes
 router.get('/supervisor/my-groups', protect, authorize('supervisor'), getSupervisorGroups);

@@ -40,18 +40,53 @@ const SupervisorEvaluations = () => {
     };
 
     const filteredGroups = groups.filter(g => {
-        if (filter === 'active') return !g.status.includes('approved') && !g.status.includes('rejected') && g.status !== 'completed' && g.status !== 'failed';
-        if (filter === 'approved') return g.status.includes('approved') || g.status === 'completed';
+        // Define terminal states that are strictly "Done" for the current context
+        const isCompleted = g.status === 'completed';
+        const isFailed = g.status === 'failed';
+
+        if (filter === 'active') {
+            // "Active" means they need attention.
+            // If internal phase is active, students who are 'proposal_approved' are ACTIVE/PENDING for Internal.
+            // So we shouldn't hide 'proposal_approved' status if 'internal' is active.
+
+            if (isCompleted || isFailed) return false;
+
+            const isProposalApproved = g.status === 'proposal_approved';
+            const isInternalApproved = g.status === 'internal_approved';
+
+            // If they are approved for a PREVIOUS phase, but the NEXT phase is active, they are Pending for the next phase.
+            if (isProposalApproved && activePhases.includes('internal')) return true;
+            if (isInternalApproved && activePhases.includes('srs')) return true;
+            if (isInternalApproved && activePhases.includes('external')) return true; // assuming external follows
+
+            // Otherwise, hide generic 'approved' statuses if they are effectively waiting for nothing or done
+            if (g.status.includes('approved')) return false;
+
+            // Hide rejected (unless it's a revision type, but strictly rejected means rejected)
+            if (g.status.includes('rejected')) return false;
+
+            return true;
+        }
+        if (filter === 'approved') {
+            // Show approved statuses
+            return g.status.includes('approved') || g.status === 'completed';
+        }
         if (filter === 'rejected') return g.status.includes('rejected') || g.status === 'failed';
         return true;
     });
 
     const handleOpenModal = (group, status) => {
-        // Determine phase automatically if possible, otherwise let user choose
-        // Since activePhases might have multiple, we default to the first one
-        // or the one most relevant to the group's current status
+        // Determine phase automatically based on Group Status + Active Timeline
         let defaultPhase = activePhases[0] || 'proposal';
-        if (group.status.includes('proposal') && activePhases.includes('proposal')) defaultPhase = 'proposal';
+
+        // Priority: Match Group Status to Next Phase
+        if (group.status === 'proposal_approved' && activePhases.includes('internal')) {
+            defaultPhase = 'internal';
+        } else if ((group.status === 'internal_approved') && activePhases.includes('srs')) {
+            defaultPhase = 'srs';
+        }
+        // Fallback: If currently in a revision state, stick to that phase
+        else if (group.status.includes('proposal') && activePhases.includes('proposal')) defaultPhase = 'proposal';
         else if (group.status.includes('internal') && activePhases.includes('internal')) defaultPhase = 'internal';
         else if (group.status.includes('srs') && activePhases.includes('srs')) defaultPhase = 'srs';
 

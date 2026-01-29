@@ -25,6 +25,9 @@ const StudentProposal = () => {
     const [editingDomain, setEditingDomain] = useState(false);
     const [tempDomain, setTempDomain] = useState('');
 
+    const [editingTitle, setEditingTitle] = useState(false);
+    const [tempTitle, setTempTitle] = useState('');
+
     const [formData, setFormData] = useState({
         description: '',
         objectives: '',
@@ -186,13 +189,61 @@ const StudentProposal = () => {
                                     <div className="mb-4">
                                         <h6 className="modern-label mb-3">Project Identity</h6>
                                         <div className="detail-box mb-3">
-                                            <label>Working Title</label>
-                                            <h5 className="text-dark m-0" style={{ fontSize: '0.9rem' }}>{group.projectTitle}</h5>
+                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                <label>Working Title</label>
+                                                {isLeader && (group.status === 'proposal_rejected' || group.status === 'registered') && !submitting && !editingTitle && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-link p-0 text-primary small"
+                                                        style={{ fontSize: '0.65rem', textDecoration: 'none' }}
+                                                        onClick={() => {
+                                                            setTempTitle(group.projectTitle);
+                                                            setEditingTitle(true);
+                                                        }}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {editingTitle ? (
+                                                <div className="d-flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control form-control-sm"
+                                                        value={tempTitle}
+                                                        onChange={(e) => setTempTitle(e.target.value)}
+                                                        style={{ fontSize: '0.9rem' }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-success px-2 py-0"
+                                                        style={{ fontSize: '0.7rem' }}
+                                                        onClick={() => {
+                                                            if (tempTitle && tempTitle !== group.projectTitle) {
+                                                                handleUpdateDetails({ projectTitle: tempTitle });
+                                                            }
+                                                            setEditingTitle(false);
+                                                        }}
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-outline-secondary px-2 py-0"
+                                                        style={{ fontSize: '0.7rem' }}
+                                                        onClick={() => setEditingTitle(false)}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <h5 className="text-dark m-0" style={{ fontSize: '0.9rem' }}>{group.projectTitle}</h5>
+                                            )}
                                         </div>
                                         <div className="detail-box">
                                             <div className="d-flex justify-content-between align-items-center mb-1">
                                                 <label className="m-0">Academic Domain</label>
-                                                {isLeader && group.status === 'proposal_rejected' && !submitting && !editingDomain && (
+                                                {isLeader && (group.status === 'proposal_rejected' || group.status === 'registered') && !submitting && !editingDomain && (
                                                     <button
                                                         type="button"
                                                         className="btn btn-link p-0 text-primary small"

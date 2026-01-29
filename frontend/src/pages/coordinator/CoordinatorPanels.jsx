@@ -196,7 +196,7 @@ const CoordinatorPanels = () => {
                                         </div>
 
                                         <div className="stats-bar-minimal">
-                                            <span className="stats-label">Groups Evaluated</span>
+                                            <span className="stats-label">Groups Assigned</span>
                                             <span className="stats-value">{panel.assignedGroups?.length || 0}</span>
                                         </div>
                                     </div>

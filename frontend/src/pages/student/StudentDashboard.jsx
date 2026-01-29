@@ -77,6 +77,18 @@ const StudentDashboard = () => {
         }
     };
 
+    const handleRejoin = async () => {
+        try {
+            if (!confirm('Are you sure you want to rejoin the new academic batch? This will reset your progress for the failed phase.')) return;
+
+            const res = await api.post(`/groups/${group._id}/rejoin`);
+            alert(res.data.message);
+            fetchData(); // Refresh to see new status and timeline
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to rejoin batch. Ensure a new timeline is active.');
+        }
+    };
+
     const formatDate = (date) => {
         if (!date) return 'TBD';
         return new Date(date).toLocaleDateString('en-US', {
@@ -155,12 +167,26 @@ const StudentDashboard = () => {
                     {/* Project Information */}
                     <div className="glass-card">
                         {group && (group.status.includes('rejected') || group.status === 'failed') && (
-                            <div className="alert alert-danger border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center gap-3">
-                                <HiOutlineShieldCheck size={24} className="flex-shrink-0" />
-                                <div>
-                                    <h6 className="fw-bold mb-1">Academic Rejection Alert</h6>
-                                    <p className="small mb-0 opacity-75">Your project has been rejected during the evaluation phase. Please contact your supervisor for the next steps or revision instructions.</p>
+                            <div className="alert alert-danger border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between gap-3">
+                                <div className="d-flex align-items-center gap-3">
+                                    <HiOutlineShieldCheck size={24} className="flex-shrink-0" />
+                                    <div>
+                                        <h6 className="fw-bold mb-1">Academic Rejection Alert</h6>
+                                        <p className="small mb-0 opacity-75">
+                                            {group.status === 'failed'
+                                                ? 'Your project timeline has been terminated due to failure in defense.'
+                                                : 'Your project has been rejected during the evaluation phase. Please contact your supervisor.'}
+                                        </p>
+                                    </div>
                                 </div>
+                                {group.status === 'failed' && isLeader && (
+                                    <button
+                                        className="btn btn-danger btn-sm text-nowrap fw-bold px-3 shadow-sm"
+                                        onClick={handleRejoin}
+                                    >
+                                        Rejoin New Batch
+                                    </button>
+                                )}
                             </div>
                         )}
 

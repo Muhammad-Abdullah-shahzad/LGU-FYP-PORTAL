@@ -262,7 +262,7 @@ export const updateGroupDetails = async (req, res) => {
             isActive: true
         });
 
-        const canUpdate = (timeline && timeline.isPhaseActive('groupRegistration')) || isRejected;
+        const canUpdate = (timeline && timeline.isPhaseActive('groupRegistration')) || isRejected || group.status === 'registered';
 
         if (!canUpdate) {
             return res.status(400).json({ message: 'Modifications are not allowed at this stage' });
@@ -393,6 +393,18 @@ export const requestSupervisor = async (req, res) => {
         // Check if supervisor's domain matches project domain
         if (!supervisor.domain.includes(group.projectDomain)) {
             return res.status(400).json({ message: 'Supervisor domain does not match project domain' });
+        }
+
+        // Check if this supervisor previously rejected this group's proposal
+        // This prevents re-requesting a supervisor who has already rejected the group's work in a defense
+        const hasPriorRejection = group.statusHistory.some(history =>
+            history.status === 'proposal_rejected' &&
+            history.changedBy &&
+            history.changedBy.toString() === supervisorId
+        );
+
+        if (hasPriorRejection) {
+            return res.status(400).json({ message: 'You cannot request supervision from a supervisor who has previously rejected your proposal defense.' });
         }
 
         group.supervisor = supervisorId;
@@ -674,7 +686,7 @@ export const evaluateGroup = async (req, res) => {
                 // If it's the second attempt (re-proposal) and they are rejected, they fail the whole timeline
                 if (group.proposalAttempts >= 1 || phase === 're-proposal') {
                     newStatus = 'failed'; // Terminal state
-                    group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.proposalAttempts + 1}). Timeline terminated.`);
+                    group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.proposalAttempts + 1}). Group must restart with the next batch.`);
                 } else {
                     newStatus = 'proposal_rejected';
                 }
@@ -684,11 +696,23 @@ export const evaluateGroup = async (req, res) => {
             group.proposalRemarks = remarks;
             group.proposalAttempts = (group.proposalAttempts || 0) + 1;
         } else if (phase === 'internal') {
+            // Validation: Must be proposal_approved or in internal revision/defense
+            const validPreviousStatuses = ['proposal_approved', 'internal_minor_revision', 'internal_major_revision', 're_internal_defense', 'internal_defense'];
+
+            // If already internal_approved, maybe preventing re-eval? Or allowing updates? Allowing for now but logging.
+
+            if (!validPreviousStatuses.includes(group.status) && !group.status.includes('internal')) {
+                return res.status(400).json({ message: `Group is not eligible for Internal Defense. Current status: ${group.status}` });
+            }
+
             if (status === 'approved') newStatus = 'internal_approved';
             else if (status === 'rejected') newStatus = 'internal_rejected';
-            else if (status === 'revision') newStatus = 'internal_minor_revision';
+            else if (status === 'revision') newStatus = 'internal_minor_revision'; // Default mapping
+
             group.internalRemarks = remarks;
             group.internalAttempts = (group.internalAttempts || 0) + 1;
+            group.internalDefenseDate = new Date(); // Log the date of defense/eval
+
         } else if (phase === 'srs') {
             if (status === 'approved') newStatus = 'srs_approved';
             else if (status === 'revision') newStatus = 'srs_revision';
@@ -702,6 +726,118 @@ export const evaluateGroup = async (req, res) => {
         } else {
             res.status(400).json({ message: 'Invalid evaluation phase or status' });
         }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Rejoin batch after failure
+// @route   POST /api/groups/:id/rejoin
+// @access  Private/Student
+export const rejoinBatch = async (req, res) => {
+    try {
+        const group = await Group.findById(req.params.id);
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        if (group.leader.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Only leader can perform this action' });
+        }
+
+        if (group.status !== 'failed') {
+            return res.status(400).json({ message: 'Only failed groups can rejoin a new batch' });
+        }
+
+        // Per latest requirement: HARD RESET everything except team members.
+        const targetStatus = 'registered';
+
+        // User Logic: Fall 2023 -> Spring 2023 (Same Year), Spring 2023 -> Fall 2024 (Next Year)
+        let targetBatch, targetYear;
+
+        if (group.batch === 'Fall') {
+            targetBatch = 'Spring';
+            targetYear = group.year.toString();
+        } else if (group.batch === 'Spring') {
+            targetBatch = 'Fall';
+            targetYear = (parseInt(group.year) + 1).toString();
+        } else {
+            targetBatch = 'Fall';
+            targetYear = (parseInt(group.year) + 1).toString();
+        }
+
+        const targetTimeline = await Timeline.findOne({
+            batch: targetBatch,
+            year: targetYear,
+            isActive: true,
+            $or: [{ groupRegistrationStatus: 'Open' }, { proposalSubmissionStatus: 'Open' }]
+        });
+
+        if (!targetTimeline) {
+            return res.status(400).json({ message: `No active timeline found for ${targetBatch} ${targetYear}. Please wait for start.` });
+        }
+
+        // Context Update
+        const newBatch = `${targetTimeline.batch}-${targetTimeline.year}`;
+
+        group.batch = targetTimeline.batch;
+        group.year = targetTimeline.year;
+        group.batchYear = targetTimeline.batchYear;
+        group.semester = targetTimeline.semester;
+
+        // --- HARD RESET FIELDS ---
+
+        // 1. Identity
+        group.groupName = null; // Triggers regeneration of ID in pre-validate hook
+        group.status = targetStatus;
+
+        // 2. Supervisor (Explicitly Clear)
+        group.supervisor = null;
+        group.supervisorStatus = 'not_requested';
+        group.supervisorRequestDate = undefined;
+
+        // 3. Panels
+        group.proposalPanel = null;
+        group.internalPanel = null;
+        group.srsPanel = null;
+        group.externalPanel = null;
+
+        // 4. Attempts
+        group.proposalAttempts = 0;
+        group.internalAttempts = 0;
+
+        // 5. Artifacts
+        group.proposalDocument = null;
+        group.proposalRemarks = null;
+        group.proposalDefenseDate = null;
+
+        group.internalRemarks = null;
+        group.internalDefenseDate = null;
+
+        group.srsDocument = null;
+        group.srsRemarks = null;
+        group.srsDefenseDate = null;
+
+        group.finalReport = null;
+        group.externalRemarks = null;
+        group.externalDefenseDate = null;
+        group.finalGrade = null;
+
+        // Log history
+        group.addStatusChange(targetStatus, req.user._id, `Readmitted to ${newBatch} batch. fresh start initiated.`);
+
+        await group.save();
+
+        // Populate to confirm to frontend that supervisor is indeed null
+        await group.populate('student1 student2 leader');
+
+        res.json({
+            message: `Successfully rejoined ${newBatch} batch. You can now select a new supervisor and submit your proposal.`,
+            group
+        });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });

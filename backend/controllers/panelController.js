@@ -113,6 +113,20 @@ export const assignGroupToPanel = async (req, res) => {
             return res.status(404).json({ message: 'Group not found' });
         }
 
+        // Check if group is already assigned to a panel for this phase
+        if (panel.panelType === 'proposal' && group.proposalPanel) {
+            return res.status(400).json({ message: 'Group is already assigned to a Proposal Defense panel.' });
+        }
+        if (panel.panelType === 'internal' && group.internalPanel) {
+            return res.status(400).json({ message: 'Group is already assigned to an Internal Defense panel.' });
+        }
+        if (panel.panelType === 'srs' && group.srsPanel) {
+            return res.status(400).json({ message: 'Group is already assigned to an SRS Defense panel.' });
+        }
+        if (panel.panelType === 'external' && group.externalPanel) {
+            return res.status(400).json({ message: 'Group is already assigned to an External Defense panel.' });
+        }
+
         // Check if supervisor is on the panel
         if (group.supervisor && panel.members.some(memberId => memberId.toString() === group.supervisor.toString())) {
             return res.status(400).json({
