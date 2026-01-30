@@ -7,7 +7,8 @@ import {
     getMyPanels,
     evaluateGroup,
     acceptMinorRevision,
-    deleteDefensePanel
+    deleteDefensePanel,
+    unassignGroupFromPanel
 } from '../controllers/panelController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -18,6 +19,7 @@ router.post('/', protect, authorize('coordinator'), createDefensePanel);
 router.get('/', protect, authorize('coordinator'), getAllPanels);
 router.post('/:id/assign-group', protect, authorize('coordinator'), assignGroupToPanel);
 router.delete('/:id', protect, authorize('coordinator'), deleteDefensePanel);
+router.post('/:id/unassign-group', protect, authorize('coordinator'), unassignGroupFromPanel);
 
 // Panel member routes
 router.get('/my-panels', protect, authorize('supervisor', 'panel_member'), getMyPanels);

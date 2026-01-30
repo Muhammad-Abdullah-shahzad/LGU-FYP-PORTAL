@@ -7,15 +7,16 @@ import {
     HiOutlineExclamationCircle,
     HiOutlineCheckCircle,
     HiOutlineClock,
-    HiOutlineX
+    HiOutlineX,
+    HiOutlineCollection
 } from 'react-icons/hi';
 
 const SupervisorEvaluations = () => {
-    const [groups, setGroups] = useState([]);
+    const [panels, setPanels] = useState([]);
     const [activePhases, setActivePhases] = useState([]);
     const [loading, setLoading] = useState(true);
     const [evaluatingGroup, setEvaluatingGroup] = useState(null);
-    const [filter, setFilter] = useState('active'); // 'active', 'approved', 'rejected'
+    const [filter, setFilter] = useState('active');
     const [evaluationData, setEvaluationData] = useState({
         status: '',
         remarks: '',
@@ -30,7 +31,7 @@ const SupervisorEvaluations = () => {
         try {
             setLoading(true);
             const res = await api.get('/groups/supervisor/evaluations');
-            setGroups(res.data.groups || []);
+            setPanels(res.data.panels || []);
             setActivePhases(res.data.activePhases || []);
         } catch (err) {
             console.error('Error fetching evaluations:', err);
@@ -39,41 +40,27 @@ const SupervisorEvaluations = () => {
         }
     };
 
-    const filteredGroups = groups.filter(g => {
-        // Define terminal states that are strictly "Done" for the current context
-        const isCompleted = g.status === 'completed';
-        const isFailed = g.status === 'failed';
+    const filteredPanels = panels.map(panel => ({
+        ...panel,
+        assignedGroups: (panel.assignedGroups || []).filter(g => {
+            const isCompleted = g.status === 'completed';
+            const isFailed = g.status === 'failed';
 
-        if (filter === 'active') {
-            // "Active" means they need attention.
-            // If internal phase is active, students who are 'proposal_approved' are ACTIVE/PENDING for Internal.
-            // So we shouldn't hide 'proposal_approved' status if 'internal' is active.
-
-            if (isCompleted || isFailed) return false;
-
-            const isProposalApproved = g.status === 'proposal_approved';
-            const isInternalApproved = g.status === 'internal_approved';
-
-            // If they are approved for a PREVIOUS phase, but the NEXT phase is active, they are Pending for the next phase.
-            if (isProposalApproved && activePhases.includes('internal')) return true;
-            if (isInternalApproved && activePhases.includes('srs')) return true;
-            if (isInternalApproved && activePhases.includes('external')) return true; // assuming external follows
-
-            // Otherwise, hide generic 'approved' statuses if they are effectively waiting for nothing or done
-            if (g.status.includes('approved')) return false;
-
-            // Hide rejected (unless it's a revision type, but strictly rejected means rejected)
-            if (g.status.includes('rejected')) return false;
-
+            if (filter === 'active') {
+                if (isCompleted || isFailed) return false;
+                const isProposalApproved = g.status === 'proposal_approved';
+                const isInternalApproved = g.status === 'internal_approved';
+                if (isProposalApproved && activePhases.includes('internal')) return true;
+                if (isInternalApproved && (activePhases.includes('srs') || activePhases.includes('external'))) return true;
+                if (g.status.includes('approved')) return false;
+                if (g.status.includes('rejected')) return false;
+                return true;
+            }
+            if (filter === 'approved') return g.status.includes('approved') || g.status === 'completed';
+            if (filter === 'rejected') return g.status.includes('rejected') || g.status === 'failed';
             return true;
-        }
-        if (filter === 'approved') {
-            // Show approved statuses
-            return g.status.includes('approved') || g.status === 'completed';
-        }
-        if (filter === 'rejected') return g.status.includes('rejected') || g.status === 'failed';
-        return true;
-    });
+        })
+    })).filter(p => p.assignedGroups.length > 0);
 
     const handleOpenModal = (group, status) => {
         // Determine phase automatically based on Group Status + Active Timeline
@@ -173,60 +160,68 @@ const SupervisorEvaluations = () => {
                     </div>
                 </div>
 
-                {filteredGroups.length === 0 ? (
+                {filteredPanels.length === 0 ? (
                     <div className="text-center py-5 bg-white border rounded-3 shadow-sm">
                         <HiOutlineClipboardCheck size={48} className="text-muted opacity-20 mb-3" />
-                        <h6 className="fw-bold text-dark">No Groups in this Category</h6>
-                        <p className="text-muted small">All records are up to date.</p>
+                        <h6 className="fw-bold text-dark">No Groups Found</h6>
+                        <p className="text-muted small">All evaluations for your panels are complete.</p>
                     </div>
                 ) : (
-                    <div className="row g-3">
-                        {filteredGroups.map((group) => (
-                            <div key={group._id} className="col-md-6 col-xl-4">
-                                <div className="eval-card-minimal">
-                                    <div className="eval-body">
-                                        <div className="eval-meta">
-                                            <span className="eval-badge">{group.groupName}</span>
-                                            <span className="text-muted" style={{ fontSize: '0.6rem' }}>SEM {group.semester}</span>
+                    <div className="panels-list">
+                        {filteredPanels.map((panel) => (
+                            <div key={panel._id} className="panel-section mb-5">
+                                <div className="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <div className="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
+                                            <HiOutlineCollection size={20} />
                                         </div>
-                                        <h6 className="eval-title">{group.projectTitle}</h6>
-                                        <div className="mb-3 d-flex gap-1">
-                                            {[group.student1, group.student2].filter(Boolean).map((s, i) => (
-                                                <span key={i} className="badge bg-light text-dark border fw-normal" style={{ fontSize: '0.65rem' }}>
-                                                    {s.firstName} {s.lastName}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <div className={`p-2 rounded bg-light border-start border-${group.status.includes('rejected') || group.status === 'failed' ? 'danger' : group.status.includes('approved') ? 'success' : 'primary'} border-4 mb-3`}>
-                                            <div className="text-uppercase fw-800 text-muted mb-1" style={{ fontSize: '0.55rem' }}>Current Milestones status</div>
-                                            <div className={`fw-bold ${group.status.includes('rejected') || group.status === 'failed' ? 'text-danger' : 'text-dark'} text-uppercase`} style={{ fontSize: '0.75rem' }}>
-                                                {group.status.replace('_', ' ')}
+                                        <div>
+                                            <h5 className="fw-bold m-0" style={{ fontSize: '0.95rem' }}>{panel.panelName}</h5>
+                                            <div className="text-muted x-small text-uppercase fw-bold" style={{ fontSize: '0.6rem' }}>
+                                                {panel.panelType.replace('-', ' ')} PANEL • {panel.academicYear}
                                             </div>
                                         </div>
                                     </div>
+                                    <span className="badge bg-light text-muted border fw-normal" style={{ fontSize: '0.65rem' }}>
+                                        {panel.assignedGroups.length} Groups Assigned
+                                    </span>
+                                </div>
 
-                                    {activePhases.length > 0 && (
-                                        <div className="eval-actions">
-                                            <button
-                                                className="eval-btn btn-approve"
-                                                onClick={() => handleOpenModal(group, 'approved')}
-                                            >
-                                                Approve
-                                            </button>
-                                            <button
-                                                className="eval-btn btn-revision"
-                                                onClick={() => handleOpenModal(group, 'revision')}
-                                            >
-                                                Revision
-                                            </button>
-                                            <button
-                                                className="eval-btn btn-reject"
-                                                onClick={() => handleOpenModal(group, 'rejected')}
-                                            >
-                                                Reject
-                                            </button>
+                                <div className="row g-3">
+                                    {panel.assignedGroups.map((group) => (
+                                        <div key={group._id} className="col-md-6 col-xl-4">
+                                            <div className="eval-card-minimal">
+                                                <div className="eval-body">
+                                                    <div className="eval-meta">
+                                                        <span className="eval-badge">{group.groupName}</span>
+                                                        <span className="text-muted" style={{ fontSize: '0.6rem' }}>SEM {group.semester}</span>
+                                                    </div>
+                                                    <h6 className="eval-title text-truncate" title={group.projectTitle}>{group.projectTitle}</h6>
+                                                    <div className="mb-3 d-flex flex-wrap gap-1">
+                                                        {[group.student1, group.student2].filter(Boolean).map((s, i) => (
+                                                            <span key={i} className="badge bg-light text-secondary border fw-normal" style={{ fontSize: '0.65rem' }}>
+                                                                {s.firstName} {s.lastName}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className={`p-2 rounded bg-light border-start border-${group.status.includes('rejected') || group.status === 'failed' ? 'danger' : group.status.includes('approved') ? 'success' : 'primary'} border-4`}>
+                                                        <div className="text-uppercase fw-800 text-muted mb-1" style={{ fontSize: '0.55rem' }}>Milestone Status</div>
+                                                        <div className={`fw-bold ${group.status.includes('rejected') || group.status === 'failed' ? 'text-danger' : 'text-dark'} text-uppercase`} style={{ fontSize: '0.75rem' }}>
+                                                            {group.status.replace('_', ' ')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {activePhases.length > 0 && (
+                                                    <div className="eval-actions">
+                                                        <button className="eval-btn btn-approve" onClick={() => handleOpenModal(group, 'approved')}>Approve</button>
+                                                        <button className="eval-btn btn-revision" onClick={() => handleOpenModal(group, 'revision')}>Revision</button>
+                                                        <button className="eval-btn btn-reject" onClick={() => handleOpenModal(group, 'rejected')}>Reject</button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                         ))}

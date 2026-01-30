@@ -22,6 +22,7 @@ const CoordinatorPanels = () => {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showAssignModal, setShowAssignModal] = useState(false);
+    const [showGroupsModal, setShowGroupsModal] = useState(false);
     const [selectedPanel, setSelectedPanel] = useState(null);
     const [submitting, setSubmitting] = useState(false);
 
@@ -161,6 +162,19 @@ const CoordinatorPanels = () => {
                     </button>
                 </div>
 
+                {/* Newly Added: Stats Overview (Optional but Good for UI) */}
+                <div className="row g-3 mb-4">
+                    <div className="col-md-3">
+                        <div className="stats-card-minimal">
+                            <div className="stats-icon text-primary"><HiOutlineUserGroup size={24} /></div>
+                            <div>
+                                <div className="stats-count">{panels.length}</div>
+                                <div className="stats-title">Total Panels</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {loading ? (
                     <div className="text-center py-5"><div className="spinner-border text-primary spinner-border-sm"></div></div>
                 ) : panels.length === 0 ? (
@@ -202,15 +216,24 @@ const CoordinatorPanels = () => {
                                     </div>
 
                                     <div className="panel-card-footer">
-                                        <button className="btn-card-action" onClick={() => { setSelectedPanel(panel); setShowAssignModal(true); }}>
-                                            Assign Group
-                                        </button>
-                                        <button className="btn-icon-circle" title="Export CSV" onClick={() => exportToCSV(panel)}>
-                                            <HiOutlineDownload size={14} />
-                                        </button>
-                                        <button className="btn-icon-circle delete" title="Delete Committee" onClick={() => handleDeletePanel(panel._id)}>
-                                            <HiOutlineTrash size={14} />
-                                        </button>
+                                        <div className="d-flex flex-column gap-2 w-100">
+                                            <div className="d-flex gap-2">
+                                                <button className="btn-card-action flex-grow-1" onClick={() => { setSelectedPanel(panel); setShowAssignModal(true); }}>
+                                                    Assign Group
+                                                </button>
+                                                <button className="btn-card-action secondary flex-grow-1" onClick={() => { setSelectedPanel(panel); setShowGroupsModal(true); }}>
+                                                    Assigned Groups
+                                                </button>
+                                            </div>
+                                            <div className="d-flex gap-2 justify-content-end border-top pt-2">
+                                                <button className="btn-icon-circle" title="Export CSV" onClick={() => exportToCSV(panel)}>
+                                                    <HiOutlineDownload size={14} />
+                                                </button>
+                                                <button className="btn-icon-circle delete" title="Delete Committee" onClick={() => handleDeletePanel(panel._id)}>
+                                                    <HiOutlineTrash size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -320,6 +343,86 @@ const CoordinatorPanels = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Assigned Groups Modal */}
+            {showGroupsModal && selectedPanel && (
+                <div className="modal-minimal-overlay">
+                    <div className="modal-content-minimal" style={{ maxWidth: '700px' }}>
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 className="fw-bold m-0">Groups Assigned to {selectedPanel.panelName}</h5>
+                                <p className="text-muted small mb-0">{selectedPanel.assignedGroups?.length || 0} groups total</p>
+                            </div>
+                            <button className="btn p-0 text-muted" onClick={() => setShowGroupsModal(false)}><HiOutlineX size={20} /></button>
+                        </div>
+
+                        <div className="assigned-groups-list overflow-auto" style={{ maxHeight: '450px' }}>
+                            {selectedPanel.assignedGroups && selectedPanel.assignedGroups.length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="table table-hover border-0 align-middle">
+                                        <thead className="bg-light sticky-top">
+                                            <tr>
+                                                <th className="border-0 px-3 py-2 small fw-bold text-muted">GROUP ID</th>
+                                                <th className="border-0 px-3 py-2 small fw-bold text-muted">PROJECT TITLE</th>
+                                                <th className="border-0 px-3 py-2 small fw-bold text-muted">STATUS</th>
+                                                <th className="border-0 px-3 py-2 small fw-bold text-muted">ACTION</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {selectedPanel.assignedGroups.map(group => (
+                                                <tr key={group._id}>
+                                                    <td className="px-3 py-3 border-0">
+                                                        <span className="badge bg-light text-primary border px-2 py-1 fw-bold" style={{ fontSize: '0.7rem' }}>
+                                                            {group.groupName}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-3 border-0">
+                                                        <div className="fw-bold small text-dark">{group.projectTitle}</div>
+                                                        <div className="text-muted" style={{ fontSize: '0.65rem' }}>{group.projectDomain}</div>
+                                                    </td>
+                                                    <td className="px-3 py-3 border-0">
+                                                        <span className="text-uppercase fw-bold" style={{ fontSize: '0.65rem', color: group.status?.includes('approved') ? '#10b981' : '#6b7280' }}>
+                                                            {group.status?.replace('_', ' ')}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-3 border-0">
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger border-0 rounded-pill p-1 shadow-none"
+                                                            title="Unassign Group"
+                                                            onClick={async () => {
+                                                                if (window.confirm('Are you sure you want to unassign this group?')) {
+                                                                    try {
+                                                                        await api.post(`/panels/${selectedPanel._id}/unassign-group`, { groupId: group._id });
+                                                                        const updatedPanel = { ...selectedPanel, assignedGroups: selectedPanel.assignedGroups.filter(g => g._id !== group._id) };
+                                                                        setPanels(panels.map(p => p._id === selectedPanel._id ? updatedPanel : p));
+                                                                        setSelectedPanel(updatedPanel);
+                                                                    } catch (err) {
+                                                                        alert(err.response?.data?.message || 'Failed to unassign group');
+                                                                    }
+                                                                }
+                                                            }}
+                                                        >
+                                                            <HiOutlineX size={16} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-5 bg-light rounded-3">
+                                    <HiOutlineUserGroup size={40} className="text-muted opacity-20 mb-2" />
+                                    <p className="text-muted small">No groups have been assigned to this panel yet.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="d-flex justify-content-end mt-4">
+                            <button className="btn btn-primary rounded-pill px-4 fw-bold small" onClick={() => setShowGroupsModal(false)}>Close View</button>
+                        </div>
                     </div>
                 </div>
             )}

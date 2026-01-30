@@ -172,12 +172,32 @@ const groupSchema = new mongoose.Schema({
 
 // Auto-generate group name
 groupSchema.pre('validate', async function (next) {
+    // Only generate if groupName is not set or it's a re-generation trigger (groupName set to null)
     if (!this.groupName || this.isNew) {
         try {
-            const count = await mongoose.model('Group').countDocuments();
             const batchCode = this.batch ? this.batch.substring(0, 1).toUpperCase() : 'X';
             const yearStr = this.year || new Date().getFullYear();
-            this.groupName = `FYP-${batchCode}${yearStr}-${String(count + 1).padStart(3, '0')}`;
+            const prefix = `FYP-${batchCode}${yearStr}-`;
+
+            // Find the group with the highest number for this batch/year
+            const lastGroup = await mongoose.model('Group').findOne({
+                groupName: new RegExp(`^${prefix}`)
+            }).sort({ groupName: -1 });
+
+            let nextNumber = 1;
+            if (lastGroup && lastGroup.groupName) {
+                const parts = lastGroup.groupName.split('-');
+                const lastNum = parseInt(parts[parts.length - 1]);
+                if (!isNaN(lastNum)) {
+                    nextNumber = lastNum + 1;
+                }
+            } else {
+                // Fallback to count if regex search find nothing
+                const count = await mongoose.model('Group').countDocuments({ batch: this.batch, year: this.year });
+                nextNumber = count + 1;
+            }
+
+            this.groupName = `${prefix}${String(nextNumber).padStart(3, '0')}`;
         } catch (err) {
             return next(err);
         }

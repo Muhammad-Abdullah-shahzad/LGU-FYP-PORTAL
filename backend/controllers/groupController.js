@@ -225,6 +225,7 @@ export const submitProposal = async (req, res) => {
 
         await group.save();
 
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
         res.json({
             message: 'Proposal submitted successfully',
             group
@@ -278,6 +279,7 @@ export const updateGroupDetails = async (req, res) => {
 
         await group.save();
 
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
         res.json({
             message: 'Project details updated successfully',
             group
@@ -413,8 +415,7 @@ export const requestSupervisor = async (req, res) => {
         group.addStatusChange(group.status, req.user._id, `Supervisor request sent to ${supervisor.fullName}`);
 
         await group.save();
-        await group.populate('supervisor', 'firstName lastName email domain');
-
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
         res.json({
             message: 'Supervisor request sent successfully',
             group
@@ -629,23 +630,19 @@ export const getSupervisorEvaluations = async (req, res) => {
         // Unique phases
         activePhases = [...new Set(activePhases)];
 
-        // Find panels where user is a member to include panel-assigned groups
-        const myPanels = await DefensePanel.find({ members: req.user._id });
-        const panelGroupIds = myPanels.reduce((acc, panel) => [...acc, ...panel.assignedGroups], []);
-
-        // Get groups where user is supervisor OR part of the assigned defense panel
-        const groups = await Group.find({
-            $or: [
-                { supervisor: req.user._id, supervisorStatus: 'approved' },
-                { _id: { $in: panelGroupIds } }
-            ]
-        })
-            .populate('student1 student2', 'firstName lastName email registrationNumber')
+        // Find panels where user is a member and populate assigned groups
+        const panels = await DefensePanel.find({ members: req.user._id })
+            .populate({
+                path: 'assignedGroups',
+                populate: {
+                    path: 'student1 student2',
+                    select: 'firstName lastName email registrationNumber'
+                }
+            })
             .sort({ updatedAt: -1 });
 
         res.json({
-            count: groups.length,
-            groups,
+            panels,
             activePhases
         });
     } catch (error) {

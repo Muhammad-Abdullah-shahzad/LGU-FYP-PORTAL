@@ -27,7 +27,7 @@ const StudentDashboard = () => {
     });
     const [invitations, setInvitations] = useState([]);
     const { user } = useAuth();
-    const isLeader = group && user && group.leader?._id === user._id;
+    const isLeader = group && user && (group.leader?._id === user._id || group.leader === user._id);
 
     useEffect(() => {
         fetchData();

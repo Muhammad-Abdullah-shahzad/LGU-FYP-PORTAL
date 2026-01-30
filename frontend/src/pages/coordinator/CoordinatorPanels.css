@@ -290,3 +290,50 @@
         transform: translateY(0);
     }
 }
+
+/* Stats Card Styling */
+.stats-card-minimal {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.stats-count {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+}
+
+.stats-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.btn-card-action.secondary {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.btn-card-action.secondary:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+/* Assigned Groups List in Modal */
+.assigned-groups-list table th {
+    letter-spacing: 0.05em;
+}
+
+.assigned-groups-list .table-hover tbody tr:hover {
+    background-color: #f8fafc;
+}

@@ -37,7 +37,7 @@ const StudentProposal = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const { user } = useAuth();
-    const isLeader = group && user && group.leader?._id === user._id;
+    const isLeader = group && user && (group.leader?._id === user._id || group.leader === user._id);
 
     useEffect(() => {
         fetchData();

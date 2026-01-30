@@ -112,62 +112,57 @@ const CoordinatorTimeline = () => {
         }
     };
 
-    const PhaseCard = ({ timeline, phase, title, icon: Icon, color }) => {
+    const PhaseCard = ({ timeline, phase, title, icon: Icon }) => {
         const isOpen = timeline[`${phase}Status`] === 'Open';
         const start = timeline[`${phase}Start`] ? timeline[`${phase}Start`].split('T')[0] : '';
         const end = timeline[`${phase}End`] ? timeline[`${phase}End`].split('T')[0] : '';
 
-        const colClass = timeline.semester === 7 ? "col-md-6 col-xl-2" : "col-md-6";
+        const colClass = "col-12 col-md-6 col-lg-4 col-xl-3";
 
         return (
             <div className={colClass}>
-                <div className={`card phase-card border-0 shadow-sm ${isOpen ? 'active-phase' : ''}`}>
-                    <div className="card-body p-4">
-                        <div className="d-flex justify-content-between align-items-start mb-3">
-                            <div className={`icon-box bg-${color}-subtle text-${color}`}>
-                                <Icon size={22} />
-                            </div>
-                            <div className="form-check form-switch ps-0">
-                                <input
-                                    className="form-check-input ms-0 toggle-switch shadow-none"
-                                    type="checkbox"
-                                    checked={isOpen}
-                                    onChange={() => togglePhase(timeline._id, phase, timeline[`${phase}Status`])}
-                                />
-                            </div>
+                <div className={`phase-card ${isOpen ? 'active-phase' : ''}`}>
+                    <div className="d-flex justify-content-between align-items-start">
+                        <div className="icon-box">
+                            <Icon size={18} />
                         </div>
-
-                        <h6 className="fw-bold mb-1 font-outfit">{title}</h6>
-                        <div className="d-flex align-items-center gap-2 mb-3">
-                            <span className={`status-indicator ${isOpen ? 'open' : 'closed'}`}></span>
-                            <span className={`x-small fw-bold text-uppercase ${isOpen ? 'text-success' : 'text-danger'}`}>
-                                {isOpen ? 'Open for Students' : 'Closed'}
-                            </span>
+                        <div className="form-check form-switch p-0">
+                            <input
+                                className="form-check-input toggle-switch shadow-none m-0"
+                                type="checkbox"
+                                checked={isOpen}
+                                onChange={() => togglePhase(timeline._id, phase, timeline[`${phase}Status`])}
+                            />
                         </div>
+                    </div>
 
-                        <div className="date-inputs mt-4">
-                            <div className="mb-3">
-                                <label className="date-label">START DATE</label>
-                                <div className="input-group-modern">
-                                    <input
-                                        type="date"
-                                        className="form-control-modern"
-                                        value={start}
-                                        onChange={(e) => updatePhaseDates(timeline._id, phase, e.target.value, end)}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="date-label">END DATE</label>
-                                <div className="input-group-modern">
-                                    <input
-                                        type="date"
-                                        className="form-control-modern"
-                                        value={end}
-                                        onChange={(e) => updatePhaseDates(timeline._id, phase, start, e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                    <h6 className="fw-semibold mb-2" style={{ fontSize: '0.9rem' }}>{title}</h6>
+
+                    <div className="status-label">
+                        <span className={`status-indicator ${isOpen ? 'open' : 'closed'}`}></span>
+                        <span style={{ color: isOpen ? 'var(--success)' : 'var(--text-muted)' }}>
+                            {isOpen ? 'Open' : 'Closed'}
+                        </span>
+                    </div>
+
+                    <div className="date-group">
+                        <div className="date-item">
+                            <label className="date-label">Start</label>
+                            <input
+                                type="date"
+                                className="form-control-modern"
+                                value={start}
+                                onChange={(e) => updatePhaseDates(timeline._id, phase, e.target.value, end)}
+                            />
+                        </div>
+                        <div className="date-item">
+                            <label className="date-label">End</label>
+                            <input
+                                type="date"
+                                className="form-control-modern"
+                                value={end}
+                                onChange={(e) => updatePhaseDates(timeline._id, phase, start, e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -176,43 +171,44 @@ const CoordinatorTimeline = () => {
     };
 
     return (
-        <DashboardLayout title="FYP Timelines">
-            <div className="coordinator-timeline-container p-0">
-                <div className="header-section d-flex align-items-center justify-content-between mb-5">
+        <DashboardLayout title="Academic Timeline">
+            <div className="coordinator-timeline-container">
+                <div className="header-section d-flex align-items-center justify-content-between">
                     <div>
-                        <h2 className="fw-bold m-0 font-outfit text-gray-900">Manage Deadlines</h2>
-                        <p className="text-secondary m-0 mt-1">Easily open and close registration or defense phases for students.</p>
+                        <h2 className="font-outfit">Academic Timelines</h2>
+                        <p>Manage registration and submission deadlines for all batches.</p>
                     </div>
-                    <button className="btn btn-primary-modern d-flex align-items-center gap-2" onClick={() => setShowModal(true)}>
-                        <FaPlus /> <span>New Session</span>
+                    <button className="btn btn-primary-modern" onClick={() => setShowModal(true)}>
+                        <FaPlus size={14} /> <span>New Session</span>
                     </button>
                 </div>
 
                 <div className="timelines-list">
                     {timelines.map((t) => (
-                        <div key={t._id} className="timeline-session mb-5">
-                            <div className="session-header bg-white rounded-4 shadow-sm p-4 mb-4 d-flex align-items-center justify-content-between">
-                                <div className="d-flex align-items-center gap-4">
-                                    <div className={`session-badge ${t.batch === 'Fall' ? 'fall' : 'spring'}`}>
+                        <div key={t._id} className="timeline-session">
+                            <div className="session-header">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className="session-badge">
                                         {t.batch === 'Fall' ? '🍂' : '🌸'}
                                     </div>
                                     <div>
                                         <div className="d-flex align-items-center gap-2 mb-1">
-                                            <h3 className="fw-bold mb-0 font-outfit">{t.batch}-{t.batchYear}</h3>
-                                            <span className="badge bg-primary bg-opacity-10 text-primary border-0 rounded-pill px-2 py-1 small fw-bold" style={{ fontSize: '10px' }}>BATCH BOTTLE</span>
+                                            <h4 className="fw-bold mb-0 font-outfit" style={{ fontSize: '1.25rem' }}>
+                                                {t.batch} {t.batchYear}
+                                            </h4>
+                                            <span className="badge-modern">Semester {t.semester}</span>
                                         </div>
-                                        <div className="d-flex align-items-center gap-2 mt-1">
-                                            <span className="badge-modern">Semester {t.semester} ({t.year})</span>
-                                            <div className="status-dot-container">
-                                                <span className={`status-dot ${t.isActive ? 'active' : 'inactive'}`}></span>
-                                                <span className="small text-muted fw-medium">{t.isActive ? 'Active Session' : 'Inactive Session'}</span>
-                                            </div>
+                                        <div className="status-dot-container">
+                                            <span className={`status-dot ${t.isActive ? 'active' : 'inactive'}`}></span>
+                                            <span className="small text-muted fw-medium">
+                                                {t.isActive ? 'Active Session' : 'Inactive'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="d-flex align-items-center gap-3">
+                                <div className="d-flex align-items-center gap-4">
                                     <div className="form-check form-switch m-0 p-0 d-flex align-items-center gap-2">
-                                        <label className="small fw-bold text-muted">Session Status</label>
+                                        <label className="small fw-semibold text-muted">Session Active</label>
                                         <input
                                             className="form-check-input m-0 cursor-pointer"
                                             type="checkbox"
@@ -220,75 +216,26 @@ const CoordinatorTimeline = () => {
                                             onChange={() => toggleActive(t._id, t.isActive)}
                                         />
                                     </div>
-                                    <button className="btn btn-icon-danger" onClick={() => deleteTimeline(t._id)} title="Delete Session">
+                                    <button className="btn-icon-danger" onClick={() => deleteTimeline(t._id)} title="Delete Session">
                                         <FaTrash size={14} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="row g-4 mb-4">
+                            <div className="row g-4">
                                 {t.semester === 7 ? (
                                     <>
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="groupRegistration"
-                                            title="Group Registration"
-                                            icon={FaUsers}
-                                            color="primary"
-                                        />
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="proposalSubmission"
-                                            title="Proposal Submission"
-                                            icon={FaFileContract}
-                                            color="info"
-                                        />
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="proposalDefense"
-                                            title="Proposal Defense"
-                                            icon={FaChalkboardTeacher}
-                                            color="warning"
-                                        />
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="reProposalSubmission"
-                                            title="Re-Proposal Submission"
-                                            icon={FaFileContract}
-                                            color="info"
-                                        />
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="reProposalDefense"
-                                            title="Re-Proposal Defense"
-                                            icon={FaChalkboardTeacher}
-                                            color="danger"
-                                        />
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="internalDefense"
-                                            title="Internal Defense"
-                                            icon={FaCalendarCheck}
-                                            color="success"
-                                        />
+                                        <PhaseCard timeline={t} phase="groupRegistration" title="Groups" icon={FaUsers} />
+                                        <PhaseCard timeline={t} phase="proposalSubmission" title="Proposals" icon={FaFileContract} />
+                                        <PhaseCard timeline={t} phase="proposalDefense" title="Defense" icon={FaChalkboardTeacher} />
+                                        <PhaseCard timeline={t} phase="reProposalSubmission" title="Re-Proposals" icon={FaFileContract} />
+                                        <PhaseCard timeline={t} phase="reProposalDefense" title="Re-Defense" icon={FaChalkboardTeacher} />
+                                        <PhaseCard timeline={t} phase="internalDefense" title="Internal" icon={FaCalendarCheck} />
                                     </>
                                 ) : (
                                     <>
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="groupRegistration"
-                                            title="Group Registration"
-                                            icon={FaUsers}
-                                            color="primary"
-                                        />
-                                        <PhaseCard
-                                            timeline={t}
-                                            phase="srsDefense"
-                                            title="SRS Defense"
-                                            icon={FaFileContract}
-                                            color="info"
-                                        />
-                                        {/* Add other 8th sem phases if needed later */}
+                                        <PhaseCard timeline={t} phase="groupRegistration" title="Registration" icon={FaUsers} />
+                                        <PhaseCard timeline={t} phase="srsDefense" title="SRS Defense" icon={FaFileContract} />
                                     </>
                                 )}
                             </div>
@@ -297,13 +244,13 @@ const CoordinatorTimeline = () => {
 
                     {timelines.length === 0 && !loading && (
                         <div className="empty-state">
-                            <div className="empty-icon text-primary-subtle">
-                                <FaCalendarCheck size={80} />
+                            <div className="text-muted mb-3">
+                                <FaCalendarCheck size={48} opacity={0.2} />
                             </div>
-                            <h4 className="fw-bold text-dark mt-4">No Timelines Created</h4>
-                            <p className="text-muted">Start by creating a new academic session for a specific batch and year.</p>
-                            <button className="btn btn-primary-modern mt-3" onClick={() => setShowModal(true)}>
-                                Create First Session
+                            <h4 className="fw-bold text-dark">No Timelines Found</h4>
+                            <p className="text-muted mb-4">Create your first academic session to get started.</p>
+                            <button className="btn btn-primary-modern mx-auto" onClick={() => setShowModal(true)}>
+                                Create Session
                             </button>
                         </div>
                     )}
@@ -311,63 +258,64 @@ const CoordinatorTimeline = () => {
 
                 {/* Create Modal */}
                 {showModal && (
-                    <div className="modal-overlay">
-                        <div className="modal-dialog-modern">
-                            <div className="modal-content-modern border-0 shadow-lg p-4">
-                                <div className="modal-header-modern mb-4">
-                                    <h4 className="fw-bold m-0 font-outfit">New Academic Session</h4>
-                                    <button className="btn-close-modern" onClick={() => setShowModal(false)}>×</button>
-                                </div>
-                                <form onSubmit={handleCreateTimeline}>
-                                    <div className="modal-body-modern">
-                                        <div className="mb-4">
-                                            <label className="form-label-modern">Batch</label>
-                                            <div className="d-flex gap-3">
-                                                <div className={`batch-option ${formData.batch === 'Fall' ? 'active' : ''}`} onClick={() => setFormData({ ...formData, batch: 'Fall' })}>
-                                                    🍂 Fall
-                                                </div>
-                                                <div className={`batch-option ${formData.batch === 'Spring' ? 'active' : ''}`} onClick={() => setFormData({ ...formData, batch: 'Spring' })}>
-                                                    🌸 Spring
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="row g-3 mb-4">
-                                            <div className="col-md-6">
-                                                <label className="form-label-modern">Academic Year</label>
-                                                <select className="form-select-modern" value={formData.year} onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}>
-                                                    {years.map(y => <option key={y} value={y}>{y}</option>)}
-                                                </select>
-                                                <small className="text-muted x-small">The calendar year this timeline applies to.</small>
-                                            </div>
-                                            <div className="col-md-6">
-                                                <label className="form-label-modern">Batch Starting Year</label>
-                                                <select className="form-select-modern" value={formData.batchYear} onChange={(e) => setFormData({ ...formData, batchYear: parseInt(e.target.value) })}>
-                                                    {batchYears.map(y => <option key={y} value={y}>{y}</option>)}
-                                                </select>
-                                                <small className="text-muted x-small">The year the batch was admitted (e.g. 2023).</small>
-                                            </div>
-                                        </div>
-
-                                        <div className="mb-4">
-                                            <label className="form-label-modern">Semester</label>
-                                            <select className="form-select-modern" value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) })}>
-                                                <option value={7}>7th Semester</option>
-                                                <option value={8}>8th Semester</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="info-alert mb-4">
-                                            <FaRegClock className="text-primary me-2" />
-                                            <span>After creating, you can individually open/close registration and defense phases.</span>
-                                        </div>
-                                    </div>
-                                    <div className="modal-footer-modern border-0 mt-2 d-flex gap-2 justify-content-end">
-                                        <button type="button" className="btn-modern-light" onClick={() => setShowModal(false)}>Cancel</button>
-                                        <button type="submit" className="btn-modern-primary">Create Session</button>
-                                    </div>
-                                </form>
+                    <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                        <div className="modal-content-modern" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header-modern">
+                                <h4 className="fw-bold m-0 font-outfit">New Session</h4>
+                                <button className="btn-close-modern" onClick={() => setShowModal(false)}>×</button>
                             </div>
+                            <form onSubmit={handleCreateTimeline}>
+                                <div className="mb-4">
+                                    <label className="form-label-modern">Batch Season</label>
+                                    <div className="d-flex gap-2">
+                                        <div
+                                            className={`batch-option ${formData.batch === 'Fall' ? 'active' : ''}`}
+                                            onClick={() => setFormData({ ...formData, batch: 'Fall' })}
+                                        >
+                                            🍂 Fall
+                                        </div>
+                                        <div
+                                            className={`batch-option ${formData.batch === 'Spring' ? 'active' : ''}`}
+                                            onClick={() => setFormData({ ...formData, batch: 'Spring' })}
+                                        >
+                                            🌸 Spring
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="row g-3 mb-4">
+                                    <div className="col-6">
+                                        <label className="form-label-modern">Year</label>
+                                        <select className="form-select-modern" value={formData.year} onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}>
+                                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="col-6">
+                                        <label className="form-label-modern">Batch Year</label>
+                                        <select className="form-select-modern" value={formData.batchYear} onChange={(e) => setFormData({ ...formData, batchYear: parseInt(e.target.value) })}>
+                                            {batchYears.map(y => <option key={y} value={y}>{y}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="form-label-modern">Semester</label>
+                                    <select className="form-select-modern" value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) })}>
+                                        <option value={7}>7th Semester</option>
+                                        <option value={8}>8th Semester</option>
+                                    </select>
+                                </div>
+
+                                <div className="info-alert mb-4">
+                                    <FaRegClock size={16} style={{ marginTop: '2px' }} />
+                                    <span>Phase dates and status can be configured after the session is created.</span>
+                                </div>
+
+                                <div className="d-flex gap-2 justify-content-end">
+                                    <button type="button" className="btn-modern-light" onClick={() => setShowModal(false)}>Cancel</button>
+                                    <button type="submit" className="btn-modern-primary">Create Session</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}

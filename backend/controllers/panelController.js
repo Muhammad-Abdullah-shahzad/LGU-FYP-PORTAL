@@ -171,6 +171,50 @@ export const assignGroupToPanel = async (req, res) => {
     }
 };
 
+// @desc    Unassign group from panel
+// @route   POST /api/panels/:id/unassign-group
+// @access  Private/Coordinator
+export const unassignGroupFromPanel = async (req, res) => {
+    try {
+        const { groupId } = req.body;
+        const panel = await DefensePanel.findById(req.params.id);
+
+        if (!panel) {
+            return res.status(404).json({ message: 'Panel not found' });
+        }
+
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        // Remove from panel's assigned groups
+        panel.assignedGroups = panel.assignedGroups.filter(id => id.toString() !== groupId.toString());
+
+        // Remove panel from group based on panel type
+        if (panel.panelType === 'proposal' && group.proposalPanel?.toString() === panel._id.toString()) {
+            group.proposalPanel = null;
+        } else if (panel.panelType === 'internal' && group.internalPanel?.toString() === panel._id.toString()) {
+            group.internalPanel = null;
+        } else if (panel.panelType === 'srs' && group.srsPanel?.toString() === panel._id.toString()) {
+            group.srsPanel = null;
+        } else if (panel.panelType === 'external' && group.externalPanel?.toString() === panel._id.toString()) {
+            group.externalPanel = null;
+        }
+
+        await group.save();
+        await panel.save();
+
+        res.json({
+            message: 'Group unassigned from panel successfully',
+            panel
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // @desc    Get panel's assigned groups
 // @route   GET /api/panels/:id/groups
 // @access  Private/Panel Member
