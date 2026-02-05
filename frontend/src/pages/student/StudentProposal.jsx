@@ -34,6 +34,10 @@ const StudentProposal = () => {
         supervisorId: ''
     });
 
+    const [proposalFile, setProposalFile] = useState(null);
+    const [srsFile, setSrsFile] = useState(null);
+    const [finalReportFile, setFinalReportFile] = useState(null);
+
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const { user } = useAuth();
@@ -96,6 +100,40 @@ const StudentProposal = () => {
             setSuccess('Project details updated successfully');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to update details');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleUpload = async (type) => {
+        const file = type === 'proposal' ? proposalFile : type === 'srs' ? srsFile : finalReportFile;
+        if (!file) {
+            setError(`Please select a ${type} file first`);
+            return;
+        }
+
+        const formData = new FormData();
+        const fieldName = type === 'final-report' ? 'finalReport' : type;
+        formData.append(fieldName, file);
+
+        setSubmitting(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const res = await api.post(`/groups/${group._id}/${type}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setGroup(res.data.group);
+            setSuccess(`${type.toUpperCase()} uploaded successfully!`);
+
+            // Clear file state
+            if (type === 'proposal') setProposalFile(null);
+            else if (type === 'srs') setSrsFile(null);
+            else if (type === 'final-report') setFinalReportFile(null);
+
+        } catch (err) {
+            setError(err.response?.data?.message || `Failed to upload ${type}`);
         } finally {
             setSubmitting(false);
         }
@@ -364,17 +402,121 @@ const StudentProposal = () => {
                                                 ) : (
                                                     <>
                                                         <HiOutlineCloudUpload size={18} />
-                                                        {group.proposalDocument ? 'Update Submission' : 'Commit Proposal'}
+                                                        Update Project Scope
                                                     </>
                                                 )}
                                             </button>
-                                            <div className="text-center mt-2">
-                                                <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                                                    Collective work of the group. Coordinator review follows submission.
-                                                </small>
-                                            </div>
                                         </div>
                                     )}
+
+                                    {/* Document Submission Section */}
+                                    <div className="mt-5">
+                                        <h6 className="modern-label mb-3">Project Deliverables</h6>
+
+                                        {/* Proposal Upload */}
+                                        <div className="document-upload-card mb-3 p-3 border rounded-3 bg-light">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <HiOutlineDocumentText className="text-primary" />
+                                                    <span className="fw-bold small">Project Proposal (PDF)</span>
+                                                </div>
+                                                {group.proposalDocument && (
+                                                    <a href={group.proposalDocument} target="_blank" rel="noopener noreferrer" className="btn btn-link p-0 small text-decoration-none" style={{ fontSize: '0.7rem' }}>
+                                                        View Current
+                                                    </a>
+                                                )}
+                                            </div>
+                                            {isLeader && (group.status === 'registered' || group.status === 'proposal_rejected') && (
+                                                <div className="d-flex gap-2">
+                                                    <input
+                                                        type="file"
+                                                        className="form-control form-control-sm"
+                                                        accept=".pdf"
+                                                        onChange={(e) => setProposalFile(e.target.files[0])}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary px-3"
+                                                        onClick={() => handleUpload('proposal')}
+                                                        disabled={submitting || !proposalFile}
+                                                    >
+                                                        Upload
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {!isLeader && !group.proposalDocument && <p className="text-muted italic small m-0">No proposal uploaded yet.</p>}
+                                        </div>
+
+                                        {/* SRS Upload */}
+                                        {(group.status === 'proposal_approved' || group.status === 'srs_defense' || group.status === 'srs_revision' || group.srsDocument) && (
+                                            <div className="document-upload-card mb-3 p-3 border rounded-3 bg-light">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <HiOutlineShieldCheck className="text-success" />
+                                                        <span className="fw-bold small">SRS Document (PDF)</span>
+                                                    </div>
+                                                    {group.srsDocument && (
+                                                        <a href={group.srsDocument} target="_blank" rel="noopener noreferrer" className="btn btn-link p-0 small text-decoration-none" style={{ fontSize: '0.7rem' }}>
+                                                            View Current
+                                                        </a>
+                                                    )}
+                                                </div>
+                                                {isLeader && (group.status === 'proposal_approved' || group.status === 'srs_revision') && (
+                                                    <div className="d-flex gap-2">
+                                                        <input
+                                                            type="file"
+                                                            className="form-control form-control-sm"
+                                                            accept=".pdf"
+                                                            onChange={(e) => setSrsFile(e.target.files[0])}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-primary px-3"
+                                                            onClick={() => handleUpload('srs')}
+                                                            disabled={submitting || !srsFile}
+                                                        >
+                                                            Upload
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Final Report Upload */}
+                                        {(['internal_approved', 'internal_minor_revision', 'external_defense', 'completed'].includes(group.status) || group.finalReport) && (
+                                            <div className="document-upload-card mb-3 p-3 border rounded-3 bg-light">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <HiOutlineBookOpen className="text-info" />
+                                                        <span className="fw-bold small">Final Report (PDF)</span>
+                                                    </div>
+                                                    {group.finalReport && (
+                                                        <a href={group.finalReport} target="_blank" rel="noopener noreferrer" className="btn btn-link p-0 small text-decoration-none" style={{ fontSize: '0.7rem' }}>
+                                                            View Current
+                                                        </a>
+                                                    )}
+                                                </div>
+                                                {isLeader && ['internal_approved', 'internal_minor_revision'].includes(group.status) && (
+                                                    <div className="d-flex gap-2">
+                                                        <input
+                                                            type="file"
+                                                            className="form-control form-control-sm"
+                                                            accept=".pdf"
+                                                            onChange={(e) => setFinalReportFile(e.target.files[0])}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-primary px-3"
+                                                            onClick={() => handleUpload('final-report')}
+                                                            disabled={submitting || !finalReportFile}
+                                                        >
+                                                            Upload
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </form>

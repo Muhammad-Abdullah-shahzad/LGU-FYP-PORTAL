@@ -2,6 +2,7 @@ import Group from '../models/Group.js';
 import User from '../models/User.js';
 import Timeline from '../models/Timeline.js';
 import DefensePanel from '../models/DefensePanel.js';
+import { uploadFile } from '../config/googleDrive.js';
 
 // @desc    Create new group (Student)
 // @route   POST /api/groups
@@ -220,7 +221,10 @@ export const submitProposal = async (req, res) => {
             return res.status(400).json({ message: 'Please upload proposal document' });
         }
 
-        group.proposalDocument = req.file.filename;
+        // Upload to Google Drive
+        const googleFile = await uploadFile(req.file);
+
+        group.proposalDocument = googleFile.webViewLink;
         group.addStatusChange('proposal_submitted', req.user._id, 'Proposal submitted for review');
 
         await group.save();
@@ -319,7 +323,10 @@ export const submitSRS = async (req, res) => {
 
         if (!req.file) return res.status(400).json({ message: 'Upload SRS file' });
 
-        group.srsDocument = req.file.filename;
+        // Upload to Google Drive
+        const googleFile = await uploadFile(req.file);
+
+        group.srsDocument = googleFile.webViewLink;
         group.addStatusChange('srs_defense', req.user._id, 'SRS submitted for review');
         await group.save();
 
@@ -352,7 +359,10 @@ export const submitFinalReport = async (req, res) => {
 
         if (!req.file) return res.status(400).json({ message: 'Upload final report' });
 
-        group.finalReport = req.file.filename;
+        // Upload to Google Drive
+        const googleFile = await uploadFile(req.file);
+
+        group.finalReport = googleFile.webViewLink;
         group.addStatusChange('external_defense', req.user._id, 'Final report submitted');
         await group.save();
 
