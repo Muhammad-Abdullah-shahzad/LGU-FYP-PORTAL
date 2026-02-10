@@ -270,8 +270,8 @@ const StudentDashboard = () => {
                                     { name: 'Group Formation', start: timeline.groupRegistrationStart, end: timeline.groupRegistrationEnd, active: timeline.groupRegistrationStatus === 'Open' },
                                     { name: 'Proposal Cycle', start: timeline.proposalSubmissionStart, end: timeline.proposalSubmissionEnd, active: timeline.proposalSubmissionStatus === 'Open' },
                                     { name: 'Proposal Defense', start: timeline.proposalDefenseStart, end: timeline.proposalDefenseEnd, active: timeline.proposalDefenseStatus === 'Open' },
-                                    // Only show re-proposal if they were rejected or phase is active
-                                    ...(group?.status === 'proposal_rejected' || group?.status === 're-proposal' || timeline.reProposalDefenseStatus === 'Open' ? [
+                                    // Only show re-proposal if they were rejected and phase is active
+                                    ...(timeline.reProposalDefenseStatus === 'Open' && (group?.status === 'proposal_rejected' || group?.status === 'proposal_revision' || group?.status === 're-proposal' || (group?.proposalAttempts > 0 && group?.status !== 'proposal_approved')) ? [
                                         { name: 'Re-Proposal Defense', start: timeline.reProposalDefenseStart, end: timeline.reProposalDefenseEnd, active: timeline.reProposalDefenseStatus === 'Open' }
                                     ] : []),
                                     { name: 'Internal Defense', start: timeline.internalDefenseStart, end: timeline.internalDefenseEnd, active: timeline.internalDefenseStatus === 'Open' }

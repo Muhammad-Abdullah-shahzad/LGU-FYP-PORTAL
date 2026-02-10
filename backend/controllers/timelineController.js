@@ -59,17 +59,28 @@ export const getAllTimelines = async (req, res) => {
 export const getActiveTimeline = async (req, res) => {
     try {
         const { semester } = req.params;
-        const { batch, year } = req.query;
+        let { batch, batchYear } = req.query;
 
         const filter = {
             semester: parseInt(semester),
             isActive: true
         };
 
-        if (batch) filter.batch = batch;
-        if (year) filter.year = parseInt(year);
+        // If user is a student, prioritize their batch and enrollment year
+        if (req.user && req.user.role === 'student') {
+            if (!batch) {
+                const b = req.user.batch;
+                batch = (b === 'Fa' || b === 'Fall') ? 'Fall' : (b === 'Sp' || b === 'Spring' ? 'Spring' : b);
+            }
+            if (!batchYear) {
+                batchYear = req.user.enrolledYear;
+            }
+        }
 
-        const timeline = await Timeline.findOne(filter).sort({ year: -1, createdAt: -1 });
+        if (batch) filter.batch = batch;
+        if (batchYear) filter.batchYear = parseInt(batchYear);
+
+        const timeline = await Timeline.findOne(filter).sort({ batchYear: -1, createdAt: -1 });
 
         if (!timeline) {
             return res.status(404).json({ message: 'No active timeline found' });
@@ -132,17 +143,29 @@ export const deleteTimeline = async (req, res) => {
 export const checkPhaseStatus = async (req, res) => {
     try {
         const { phase } = req.params;
-        const { batch, year, semester } = req.query;
+        let { batch, batchYear, semester } = req.query;
 
         const filter = {
-            semester: parseInt(semester),
             isActive: true
         };
 
-        if (batch) filter.batch = batch;
-        if (year) filter.year = parseInt(year);
+        if (semester) filter.semester = parseInt(semester);
 
-        const timeline = await Timeline.findOne(filter);
+        // If user is a student, prioritize their batch and enrollment year
+        if (req.user && req.user.role === 'student') {
+            if (!batch) {
+                const b = req.user.batch;
+                batch = (b === 'Fa' || b === 'Fall') ? 'Fall' : (b === 'Sp' || b === 'Spring' ? 'Spring' : b);
+            }
+            if (!batchYear) {
+                batchYear = req.user.enrolledYear;
+            }
+        }
+
+        if (batch) filter.batch = batch;
+        if (batchYear) filter.batchYear = parseInt(batchYear);
+
+        const timeline = await Timeline.findOne(filter).sort({ batchYear: -1, semester: -1, createdAt: -1 });
 
         if (!timeline) {
             return res.json({ isActive: false, message: 'No active timeline found' });

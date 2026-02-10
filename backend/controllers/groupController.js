@@ -24,28 +24,28 @@ export const createGroup = async (req, res) => {
         // Check if registration window is open
         const timeline = await Timeline.findOne({
             batch,
-            year: parseInt(year),
+            batchYear: parseInt(batchYear),
             semester: parseInt(semester),
             isActive: true
         });
 
         if (!timeline) {
-            return res.status(400).json({ message: `No active timeline found for ${batch} ${year} Semester ${semester}` });
+            return res.status(400).json({ message: `No active timeline found for ${batch} ${batchYear} Semester ${semester}` });
         }
 
         if (!timeline.isPhaseActive('groupRegistration')) {
-            return res.status(400).json({ message: 'Group registration window is not currently open for this semester' });
+            return res.status(400).json({ message: 'Group registration window is not currently open for this batch' });
         }
 
-        // Check if student1 already in a group
+        // Check if student1 already in a group for this specific batch
         const existingGroup = await Group.findOne({
             $or: [{ student1: req.user._id }, { student2: req.user._id }],
             batch,
-            year: parseInt(year)
+            batchYear: parseInt(batchYear)
         });
 
         if (existingGroup) {
-            return res.status(400).json({ message: 'You are already part of a group for this academic year' });
+            return res.status(400).json({ message: 'You are already part of a group for this batch session' });
         }
 
         let student2Id = null;
@@ -71,7 +71,7 @@ export const createGroup = async (req, res) => {
             const student2Group = await Group.findOne({
                 $or: [{ student1: student2._id }, { student2: student2._id }],
                 batch,
-                year: parseInt(year)
+                batchYear: parseInt(batchYear)
             });
 
             if (student2Group) {
@@ -172,9 +172,10 @@ export const submitProposal = async (req, res) => {
         }
 
         // Check if group is rejected or failed in the CURRENT active timeline context
+        // Check if group is rejected or failed in the CURRENT active timeline context
         const timeline = await Timeline.findOne({
             batch: group.batch,
-            year: group.year,
+            batchYear: group.batchYear,
             semester: group.semester,
             isActive: true
         });
@@ -260,9 +261,10 @@ export const updateGroupDetails = async (req, res) => {
         const isRejected = group.status === 'proposal_rejected' || group.status === 're-proposal';
 
         // Check registration window
+        // Check registration window
         const timeline = await Timeline.findOne({
             batch: group.batch,
-            year: group.year,
+            batchYear: group.batchYear,
             semester: group.semester,
             isActive: true
         });
@@ -316,7 +318,7 @@ export const submitSRS = async (req, res) => {
             return res.status(400).json({ message: 'Group is rejected/failed' });
         }
 
-        const timeline = await Timeline.findOne({ batch: group.batch, year: group.year, semester: group.semester, isActive: true });
+        const timeline = await Timeline.findOne({ batch: group.batch, batchYear: group.batchYear, semester: group.semester, isActive: true });
         if (!timeline || !timeline.isPhaseActive('srsDefense')) {
             return res.status(400).json({ message: 'SRS submission window is closed' });
         }
@@ -690,36 +692,51 @@ export const evaluateGroup = async (req, res) => {
             if (status === 'approved') {
                 newStatus = 'proposal_approved';
             } else if (status === 'rejected') {
-                // If it's the second attempt (re-proposal) and they are rejected, they fail the whole timeline
-                if (group.proposalAttempts >= 1 || phase === 're-proposal') {
-                    newStatus = 'failed'; // Terminal state
-                    group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.proposalAttempts + 1}). Group must restart with the next batch.`);
+                // If it's the second attempt (re-proposal) or after 2 revisions, they fail
+                if (group.proposalAttempts >= 2 || phase === 're-proposal' || group.status === 'proposal_revision') {
+                    if (group.proposalAttempts >= 2) {
+                        newStatus = 'failed';
+                        group.addStatusChange('failed', req.user._id, `Rejected in ${phase} final defense (Attempt ${group.proposalAttempts + 1}).`);
+                    } else {
+                        newStatus = 'proposal_rejected';
+                    }
                 } else {
                     newStatus = 'proposal_rejected';
                 }
             } else if (status === 'revision') {
+                if (group.proposalAttempts >= 2) {
+                    return res.status(400).json({ message: 'Maximum revision attempts (2) reached. You must only Approve or Reject.' });
+                }
                 newStatus = 'proposal_revision';
             }
             group.proposalRemarks = remarks;
             group.proposalAttempts = (group.proposalAttempts || 0) + 1;
         } else if (phase === 'internal') {
-            // Validation: Must be proposal_approved or in internal revision/defense
             const validPreviousStatuses = ['proposal_approved', 'internal_minor_revision', 'internal_major_revision', 're_internal_defense', 'internal_defense'];
-
-            // If already internal_approved, maybe preventing re-eval? Or allowing updates? Allowing for now but logging.
 
             if (!validPreviousStatuses.includes(group.status) && !group.status.includes('internal')) {
                 return res.status(400).json({ message: `Group is not eligible for Internal Defense. Current status: ${group.status}` });
             }
 
-            if (status === 'approved') newStatus = 'internal_approved';
-            else if (status === 'rejected') newStatus = 'internal_rejected';
-            else if (status === 'revision') newStatus = 'internal_minor_revision'; // Default mapping
+            if (status === 'approved') {
+                newStatus = 'internal_approved';
+            } else if (status === 'rejected') {
+                if (group.internalAttempts >= 2) {
+                    newStatus = 'failed';
+                    group.addStatusChange('failed', req.user._id, `Rejected in internal final defense (Attempt ${group.internalAttempts + 1}).`);
+                } else {
+                    newStatus = 'internal_rejected';
+                }
+            } else if (status === 'revision') {
+                if (group.internalAttempts >= 2) {
+                    return res.status(400).json({ message: 'Maximum internal revision attempts (2) reached. You must only Approve or Reject.' });
+                }
+                newStatus = 'internal_minor_revision';
+            }
 
             group.internalRemarks = remarks;
             group.internalAttempts = (group.internalAttempts || 0) + 1;
-            group.internalDefenseDate = new Date(); // Log the date of defense/eval
-
+            group.internalDefenseDate = new Date();
         } else if (phase === 'srs') {
             if (status === 'approved') newStatus = 'srs_approved';
             else if (status === 'revision') newStatus = 'srs_revision';

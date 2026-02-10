@@ -10,7 +10,8 @@ const CoordinatorGroups = () => {
     const [filters, setFilters] = useState({
         batch: '',
         batchYear: '',
-        semester: ''
+        semester: '',
+        status: ''
     });
 
     const currentYear = new Date().getFullYear();
@@ -74,6 +75,14 @@ const CoordinatorGroups = () => {
                                 <option value="">All Semesters</option>
                                 <option value="7">Semester 7</option>
                                 <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="filter-label-minimal">Status</label>
+                            <select className="filter-select-minimal" value={filters.status || ''} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+                                <option value="">All Statuses</option>
+                                <option value="completed">Passed</option>
+                                <option value="failed">Failed</option>
                             </select>
                         </div>
                         <div>

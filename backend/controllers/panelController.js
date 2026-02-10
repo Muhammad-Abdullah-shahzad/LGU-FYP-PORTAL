@@ -332,35 +332,47 @@ export const evaluateGroup = async (req, res) => {
             case 'proposal':
                 group.proposalDefenseDate = new Date();
                 group.proposalRemarks = remarks;
-                group.proposalAttempts += 1;
 
                 if (decision === 'approve') {
                     group.addStatusChange('proposal_approved', req.user._id, remarks);
                 } else if (decision === 'reject') {
-                    group.addStatusChange('proposal_rejected', req.user._id, remarks);
+                    if (group.proposalAttempts >= 2) {
+                        group.addStatusChange('failed', req.user._id, `Rejected in ${phase} final defense (Attempt ${group.proposalAttempts + 1}).`);
+                    } else {
+                        group.addStatusChange('proposal_rejected', req.user._id, remarks);
+                    }
                 } else if (decision === 'revise') {
                     if (group.proposalAttempts >= 2) {
-                        group.addStatusChange('proposal_rejected', req.user._id, 'Maximum revision attempts reached');
-                    } else {
-                        group.addStatusChange('proposal_revision', req.user._id, remarks);
+                        return res.status(400).json({ message: 'Maximum revision attempts reached. You must only Approve or Reject.' });
                     }
+                    group.addStatusChange('proposal_revision', req.user._id, remarks);
                 }
+                group.proposalAttempts = (group.proposalAttempts || 0) + 1;
                 break;
 
             case 'internal':
                 group.internalDefenseDate = new Date();
                 group.internalRemarks = remarks;
-                group.internalAttempts += 1;
 
                 if (decision === 'approve') {
                     group.addStatusChange('internal_approved', req.user._id, remarks);
                 } else if (decision === 'reject') {
-                    group.addStatusChange('internal_rejected', req.user._id, remarks);
-                } else if (decision === 'minor_revision') {
-                    group.addStatusChange('internal_minor_revision', req.user._id, 'Minor revision - offline coordination required');
-                } else if (decision === 'major_revision') {
-                    group.addStatusChange('internal_major_revision', req.user._id, remarks);
+                    if (group.internalAttempts >= 2) {
+                        group.addStatusChange('failed', req.user._id, `Rejected in internal final defense (Attempt ${group.internalAttempts + 1}).`);
+                    } else {
+                        group.addStatusChange('internal_rejected', req.user._id, remarks);
+                    }
+                } else if (decision === 'minor_revision' || decision === 'major_revision') {
+                    if (group.internalAttempts >= 2) {
+                        return res.status(400).json({ message: 'Maximum revision attempts reached. You must only Approve or Reject.' });
+                    }
+                    if (decision === 'minor_revision') {
+                        group.addStatusChange('internal_minor_revision', req.user._id, 'Minor revision - offline coordination required');
+                    } else {
+                        group.addStatusChange('internal_major_revision', req.user._id, remarks);
+                    }
                 }
+                group.internalAttempts = (group.internalAttempts || 0) + 1;
                 break;
 
             case 'srs':

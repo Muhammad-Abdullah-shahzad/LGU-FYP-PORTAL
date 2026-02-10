@@ -71,8 +71,9 @@ const StudentGroup = () => {
             setActiveTimelines(timelines);
 
             if (timelines.length > 0) {
+                const userBatchFull = user?.batch === 'Fa' ? 'Fall' : (user?.batch === 'Sp' ? 'Spring' : user?.batch);
                 const studentMatch = timelines.find(t =>
-                    t.batch === user?.batch &&
+                    t.batch === userBatchFull &&
                     t.batchYear === user?.enrolledYear
                 );
                 const defaultTimeline = studentMatch || timelines[0];

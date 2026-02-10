@@ -48,6 +48,10 @@ const SupervisorEvaluations = () => {
 
             if (filter === 'active') {
                 if (isCompleted || isFailed) return false;
+
+                // Allow re-proposal groups if phase is active
+                if ((g.status === 'proposal_rejected' || g.status === 'proposal_revision') && activePhases.includes('re-proposal')) return true;
+
                 const isProposalApproved = g.status === 'proposal_approved';
                 const isInternalApproved = g.status === 'internal_approved';
                 if (isProposalApproved && activePhases.includes('internal')) return true;
@@ -71,6 +75,10 @@ const SupervisorEvaluations = () => {
             defaultPhase = 'internal';
         } else if ((group.status === 'internal_approved') && activePhases.includes('srs')) {
             defaultPhase = 'srs';
+        }
+        // Priority: If group is in re-defense state and re-proposal phase is active
+        else if ((group.status === 'proposal_rejected' || group.status === 'proposal_revision' || group.status === 're-proposal' || group.proposalAttempts > 0) && activePhases.includes('re-proposal')) {
+            defaultPhase = 're-proposal';
         }
         // Fallback: If currently in a revision state, stick to that phase
         else if (group.status.includes('proposal') && activePhases.includes('proposal')) defaultPhase = 'proposal';
@@ -215,7 +223,20 @@ const SupervisorEvaluations = () => {
                                                 {activePhases.length > 0 && (
                                                     <div className="eval-actions">
                                                         <button className="eval-btn btn-approve" onClick={() => handleOpenModal(group, 'approved')}>Approve</button>
-                                                        <button className="eval-btn btn-revision" onClick={() => handleOpenModal(group, 'revision')}>Revision</button>
+                                                        {(() => {
+                                                            // Logic to hide revision after 2 attempts
+                                                            const isProposalPhase = group.status.includes('proposal') || group.status === 'registered' || group.status === 'proposal_submitted';
+                                                            const isInternalPhase = group.status.includes('internal') || group.status === 'proposal_approved';
+
+                                                            let attempts = 0;
+                                                            if (isProposalPhase) attempts = group.proposalAttempts || 0;
+                                                            else if (isInternalPhase) attempts = group.internalAttempts || 0;
+
+                                                            if (attempts < 2) {
+                                                                return <button className="eval-btn btn-revision" onClick={() => handleOpenModal(group, 'revision')}>Revision</button>;
+                                                            }
+                                                            return null;
+                                                        })()}
                                                         <button className="eval-btn btn-reject" onClick={() => handleOpenModal(group, 'rejected')}>Reject</button>
                                                     </div>
                                                 )}
