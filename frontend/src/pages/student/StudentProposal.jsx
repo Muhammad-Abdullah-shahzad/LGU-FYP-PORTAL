@@ -395,7 +395,7 @@ const StudentProposal = () => {
                                             <button
                                                 type="submit"
                                                 className="modern-btn btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2"
-                                                disabled={submitting || group.status === 'proposal_submitted' || (group.status.includes('rejected') && group.status !== 'proposal_rejected') || group.status === 'failed'}
+                                                disabled={submitting || (group.status === 'proposal_submitted' && !group.status.includes('revision')) || (group.status.includes('rejected') && group.status !== 'proposal_rejected') || group.status === 'failed'}
                                             >
                                                 {submitting ? (
                                                     <div className="spinner-border spinner-border-sm"></div>
@@ -426,7 +426,7 @@ const StudentProposal = () => {
                                                     </a>
                                                 )}
                                             </div>
-                                            {isLeader && (group.status === 'registered' || group.status === 'proposal_rejected') && (
+                                            {isLeader && (group.status === 'registered' || group.status === 'proposal_rejected' || group.status === 'proposal_revision' || group.status === 're-proposal') && (
                                                 <div className="d-flex gap-2">
                                                     <input
                                                         type="file"

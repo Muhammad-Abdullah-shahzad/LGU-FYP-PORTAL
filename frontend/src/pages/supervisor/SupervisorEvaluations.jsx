@@ -43,32 +43,55 @@ const SupervisorEvaluations = () => {
     const filteredPanels = panels.map(panel => ({
         ...panel,
         assignedGroups: (panel.assignedGroups || []).filter(g => {
+            // General Exclusions
             const isCompleted = g.status === 'completed';
             const isFailed = g.status === 'failed';
 
+            // Define relevance to active phases
+            const isRelevantToActivePhase = activePhases.some(phase => {
+                if (phase === 'proposal' || phase === 're-proposal') {
+                    return ['registered', 'proposal_submitted', 'proposal_revision', 're-proposal', 'proposal_rejected'].includes(g.status);
+                }
+                if (phase === 'srs' || phase === 're-srs') {
+                    return ['proposal_approved', 'srs_submitted', 'srs_revision', 'srs_rejected'].includes(g.status);
+                }
+                if (phase === 'internal' || phase === 're-internal') {
+                    return ['srs_approved', 'internal_minor_revision', 'internal_rejected'].includes(g.status); // internal_submitted? usually implied by srs_approved
+                }
+                if (phase === 'external') {
+                    return ['internal_approved'].includes(g.status);
+                }
+                return false;
+            });
+
             if (filter === 'active') {
                 if (isCompleted || isFailed) return false;
+                if (!isRelevantToActivePhase) return false;
 
-                // Allow re-proposal groups if phase is active
-                if ((g.status === 'proposal_rejected' || g.status === 'proposal_revision') && activePhases.includes('re-proposal')) return true;
-                if ((g.status === 'srs_rejected' || g.status === 'srs_revision') && activePhases.includes('re-srs')) return true;
-                if ((g.status === 'internal_rejected' || g.status === 'internal_minor_revision') && activePhases.includes('re-internal')) return true;
+                // Explicitly exclude revision statuses from pending active view
+                if (g.status.includes('revision') || g.status.includes('minor_revision')) return false;
 
-                const isProposalApproved = g.status === 'proposal_approved';
-                const isInternalApproved = g.status === 'internal_approved';
-                const isSrsApproved = g.status === 'srs_approved';
+                // Hide if approved for the specific active phase AND next phase is not active
+                if (g.status === 'proposal_approved' && !activePhases.includes('srs')) return false;
+                if (g.status === 'srs_approved' && !activePhases.includes('internal')) return false;
+                if (g.status === 'internal_approved' && !activePhases.includes('external')) return false;
 
-                if (isProposalApproved && activePhases.includes('srs')) return true; // Flow: Proposal -> SRS (7th Sem) -> Wait for 8th (Internal)
-                if (isSrsApproved && activePhases.includes('internal')) return true;
-                if (isInternalApproved && activePhases.includes('external')) return true;
-
-                // Fallback for current phase logic
-                if (g.status.includes('approved')) return false; // Hide approved unless next phase is active
-                if (g.status.includes('rejected')) return false;
                 return true;
             }
+
+            // For other tabs (Revision, Approved, Rejected), also enforce active phase relevance?
+            // "only show that specific phase pending approve rejected accepted"
+            // Yes, user wants to see only relevant data.
+            // But if I want to see history? Maybe not.
+            // But the prompt says "when a specific phase is active then only show that specific phase"
+            // So strictly filter by relevance to active phases for ALL tabs.
+
+            if (!isRelevantToActivePhase && activePhases.length > 0) return false;
+
+            if (filter === 'revision') return g.status.includes('revision') || g.status.includes('minor_revision');
             if (filter === 'approved') return g.status.includes('approved') || g.status === 'completed';
             if (filter === 'rejected') return g.status.includes('rejected') || g.status === 'failed';
+
             return true;
         })
     })).filter(p => p.assignedGroups.length > 0);
@@ -169,6 +192,13 @@ const SupervisorEvaluations = () => {
                             PENDING
                         </button>
                         <button
+                            className={`btn btn-sm rounded-2 px-3 fw-bold transition-all ${filter === 'revision' ? 'bg-white shadow-sm text-warning' : 'text-muted border-0'}`}
+                            onClick={() => setFilter('revision')}
+                            style={{ fontSize: '0.7rem' }}
+                        >
+                            REVISE
+                        </button>
+                        <button
                             className={`btn btn-sm rounded-2 px-3 fw-bold transition-all ${filter === 'approved' ? 'bg-white shadow-sm text-success' : 'text-muted border-0'}`}
                             onClick={() => setFilter('approved')}
                             style={{ fontSize: '0.7rem' }}
@@ -242,15 +272,24 @@ const SupervisorEvaluations = () => {
                                                         <button className="eval-btn btn-approve" onClick={() => handleOpenModal(group, 'approved')}>Approve</button>
                                                         {(() => {
                                                             // Logic to hide revision after 2 attempts
-                                                            const isProposalPhase = group.status.includes('proposal') || group.status === 'registered' || group.status === 'proposal_submitted';
-                                                            const isInternalPhase = group.status.includes('internal') || group.status === 'proposal_approved';
-                                                            const isSrsPhase = group.status.includes('srs') || group.status === 'proposal_approved'; // NOTE: logic overlap, refine
-
                                                             let attempts = 0;
-                                                            if (group.status.includes('proposal') || group.status === 're-proposal') attempts = group.proposalAttempts || 0;
-                                                            else if (group.status.includes('internal') || group.status === 're-internal') attempts = group.internalAttempts || 0;
-                                                            else if (group.status.includes('srs') || group.status === 're-srs') attempts = group.srsAttempts || 0;
+                                                            // Determine context based on active phase priority
+                                                            // If Internal is active and group is ready for it (srs_approved or internal_...), use internal attempts
+                                                            if (activePhases.some(p => p.includes('internal')) && (group.status.includes('internal') || group.status === 'srs_approved')) {
+                                                                attempts = group.internalAttempts || 0;
+                                                            }
+                                                            // If SRS active
+                                                            else if (activePhases.some(p => p.includes('srs')) && (group.status.includes('srs') || group.status === 'proposal_approved')) {
+                                                                attempts = group.srsAttempts || 0;
+                                                            }
+                                                            // If Proposal active
+                                                            else {
+                                                                attempts = group.proposalAttempts || 0;
+                                                            }
 
+                                                            // Only show Revision if attempts < 2
+                                                            // "revise two times then after two times it should show approve reject"
+                                                            // This means for attempt 0 and 1, show Revision. For attempt 2 (3rd try), hide it.
                                                             if (attempts < 2) {
                                                                 return <button className="eval-btn btn-revision" onClick={() => handleOpenModal(group, 'revision')}>Revision</button>;
                                                             }

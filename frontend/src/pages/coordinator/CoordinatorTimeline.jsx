@@ -196,7 +196,7 @@ const CoordinatorTimeline = () => {
                                             <h4 className="fw-bold mb-0 font-outfit" style={{ fontSize: '1.25rem' }}>
                                                 {t.batch} {t.batchYear}
                                             </h4>
-                                            <span className="badge-modern">Semester {t.semester}</span>
+                                            <span className="badge-modern">FYP Session</span>
                                         </div>
                                         <div className="status-dot-container">
                                             <span className={`status-dot ${t.isActive ? 'active' : 'inactive'}`}></span>
@@ -223,23 +223,16 @@ const CoordinatorTimeline = () => {
                             </div>
 
                             <div className="row g-4">
-                                {t.semester === 7 ? (
-                                    <>
-                                        <PhaseCard timeline={t} phase="groupRegistration" title="Groups" icon={FaUsers} />
-                                        <PhaseCard timeline={t} phase="proposalSubmission" title="Proposals" icon={FaFileContract} />
-                                        <PhaseCard timeline={t} phase="proposalDefense" title="Prop. Defense" icon={FaChalkboardTeacher} />
-                                        <PhaseCard timeline={t} phase="reProposalSubmission" title="Re-Proposals" icon={FaFileContract} />
-                                        <PhaseCard timeline={t} phase="reProposalDefense" title="Re-Prop. Def." icon={FaChalkboardTeacher} />
-                                        <PhaseCard timeline={t} phase="srsSubmission" title="SRS Sub." icon={FaFileContract} />
-                                        <PhaseCard timeline={t} phase="srsDefense" title="SRS Defense" icon={FaChalkboardTeacher} />
-                                        <PhaseCard timeline={t} phase="reSrsDefense" title="Re-SRS Def." icon={FaChalkboardTeacher} />
-                                    </>
-                                ) : (
-                                    <>
-                                        <PhaseCard timeline={t} phase="internalDefense" title="Internal Def." icon={FaCalendarCheck} />
-                                        <PhaseCard timeline={t} phase="reInternalDefense" title="Re-Internal" icon={FaCalendarCheck} />
-                                    </>
-                                )}
+                                <>
+                                    <PhaseCard timeline={t} phase="groupRegistration" title="Groups" icon={FaUsers} />
+                                    <PhaseCard timeline={t} phase="proposalSubmission" title="Proposals" icon={FaFileContract} />
+                                    <PhaseCard timeline={t} phase="proposalDefense" title="Prop. Defense" icon={FaChalkboardTeacher} />
+                                    <PhaseCard timeline={t} phase="reProposalSubmission" title="Re-Proposals" icon={FaFileContract} />
+                                    <PhaseCard timeline={t} phase="reProposalDefense" title="Re-Prop. Def." icon={FaChalkboardTeacher} />
+                                    <PhaseCard timeline={t} phase="srsSubmission" title="SRS Sub." icon={FaFileContract} />
+                                    <PhaseCard timeline={t} phase="srsDefense" title="SRS Defense" icon={FaChalkboardTeacher} />
+                                    <PhaseCard timeline={t} phase="internalDefense" title="Internal Def." icon={FaCalendarCheck} />
+                                </>
                             </div>
                         </div>
                     ))}
@@ -300,13 +293,13 @@ const CoordinatorTimeline = () => {
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
+                                {/* <div className="mb-4">
                                     <label className="form-label-modern">Semester</label>
                                     <select className="form-select-modern" value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) })}>
                                         <option value={7}>7th Semester</option>
                                         <option value={8}>8th Semester</option>
                                     </select>
-                                </div>
+                                </div> */}
 
                                 <div className="info-alert mb-4">
                                     <FaRegClock size={16} style={{ marginTop: '2px' }} />

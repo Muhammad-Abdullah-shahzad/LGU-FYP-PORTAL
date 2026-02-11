@@ -270,10 +270,20 @@ const StudentDashboard = () => {
                                     { name: 'Group Formation', start: timeline.groupRegistrationStart, end: timeline.groupRegistrationEnd, active: timeline.groupRegistrationStatus === 'Open' },
                                     { name: 'Proposal Cycle', start: timeline.proposalSubmissionStart, end: timeline.proposalSubmissionEnd, active: timeline.proposalSubmissionStatus === 'Open' },
                                     { name: 'Proposal Defense', start: timeline.proposalDefenseStart, end: timeline.proposalDefenseEnd, active: timeline.proposalDefenseStatus === 'Open' },
-                                    // Re-Proposal
-                                    ...(timeline.reProposalDefenseStatus === 'Open' && (group?.status === 'proposal_rejected' || group?.status === 'proposal_revision' || group?.status === 're-proposal' || (group?.proposalAttempts > 0 && group?.status !== 'proposal_approved' && group?.status !== 'srs_submitted')) ? [
-                                        { name: 'Re-Proposal Defense', start: timeline.reProposalDefenseStart, end: timeline.reProposalDefenseEnd, active: timeline.reProposalDefenseStatus === 'Open' }
-                                    ] : []),
+
+                                    // Re-Proposal: Show if Open OR if User is in Revision/Re-Proposal state
+                                    ...[(
+                                        timeline.reProposalDefenseStatus === 'Open' ||
+                                        group?.status === 'proposal_rejected' ||
+                                        group?.status === 'proposal_revision' ||
+                                        group?.status === 're-proposal'
+                                    ) ? [{
+                                        name: 'Re-Proposal Defense',
+                                        start: timeline.reProposalDefenseStart,
+                                        end: timeline.reProposalDefenseEnd,
+                                        active: timeline.reProposalDefenseStatus === 'Open',
+                                        isUserCurrentStage: ['proposal_rejected', 'proposal_revision', 're-proposal'].includes(group?.status)
+                                    }] : []].flat(),
 
                                     // SRS
                                     { name: 'SRS Submission', start: timeline.srsSubmissionStart, end: timeline.srsSubmissionEnd, active: timeline.srsSubmissionStatus === 'Open' },
@@ -290,15 +300,36 @@ const StudentDashboard = () => {
                                         { name: 'Re-Internal Defense', start: timeline.reInternalDefenseStart, end: timeline.reInternalDefenseEnd, active: timeline.reInternalDefenseStatus === 'Open' }
                                     ] : [])
                                 ].map((phase, idx) => {
-                                    const isDone = new Date(phase.end) < new Date();
+                                    const isDone = phase.end && new Date(phase.end) < new Date();
+                                    const isStarted = !phase.start || new Date(phase.start) <= new Date();
+
+                                    // Force active/pending if this is the user's specific current stage
+                                    // if (phase.isUserCurrentStage) {
+                                    //     isDone = false;
+                                    // }
+
+                                    // If active override is true, ignore dates
+                                    const isActive = phase.active || phase.isUserCurrentStage;
+
                                     return (
-                                        <div key={idx} className={`timeline-step ${phase.active ? 'active' : ''} ${isDone ? 'completed' : ''}`}>
+                                        <div key={idx} className={`timeline-step ${isActive ? 'active' : ''} ${isDone && !isActive ? 'completed' : ''}`}>
                                             <div className="d-flex justify-content-between align-items-center w-100">
                                                 <div>
                                                     <div className="fw-bold" style={{ fontSize: '0.8rem' }}>{phase.name}</div>
-                                                    <div className="text-muted" style={{ fontSize: '0.65rem' }}>{formatDate(phase.start)} - {formatDate(phase.end)}</div>
+                                                    <div className="text-muted" style={{ fontSize: '0.65rem' }}>
+                                                        {phase.active && (!phase.start || phase.start === 'TBD') ? (
+                                                            <span className="text-success fw-bold">Currently Active</span>
+                                                        ) : (
+                                                            `${formatDate(phase.start)} - ${formatDate(phase.end)}`
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                {isDone && <HiOutlineCheckCircle className="text-success" size={16} />}
+                                                {isActive && (
+                                                    <div className="spinner-grow text-success spinner-grow-sm" role="status" style={{ width: '0.75rem', height: '0.75rem' }}>
+                                                        <span className="visually-hidden">Active</span>
+                                                    </div>
+                                                )}
+                                                {isDone && !isActive && <HiOutlineCheckCircle className="text-success" size={18} />}
                                             </div>
                                         </div>
                                     );

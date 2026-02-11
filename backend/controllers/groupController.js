@@ -204,8 +204,8 @@ export const submitProposal = async (req, res) => {
 
                 group.addStatusChange('registered', req.user._id, `Restarting FYP in new session ${globalActiveTimeline.batch}-${globalActiveTimeline.year}. Previous state cleared.`);
             }
-            // Allow re-submission if it was the first rejection (proposal_rejected)
-            else if (group.status === 'proposal_rejected') {
+            // Allow re-submission if it was the first rejection (proposal_rejected) or if in revision
+            else if (group.status === 'proposal_rejected' || group.status === 'proposal_revision' || group.status === 're-proposal') {
                 // Permitted to re-submit in the same session
             }
             else {
@@ -213,7 +213,9 @@ export const submitProposal = async (req, res) => {
             }
         }
 
-        if (!timeline || (!timeline.isPhaseActive('proposalSubmission') && !timeline.isPhaseActive('reProposalSubmission'))) {
+        const isReSubmission = group.status === 'proposal_rejected' || group.status === 'proposal_revision' || group.status === 're-proposal';
+
+        if (!timeline || (!timeline.isPhaseActive('proposalSubmission') && !timeline.isPhaseActive('reProposalSubmission') && (!isReSubmission || !timeline.isPhaseActive('reProposalDefense')))) {
             return res.status(400).json({ message: 'Proposal submission window is closed' });
         }
 
@@ -694,7 +696,10 @@ export const evaluateGroup = async (req, res) => {
             if (status === 'approved') {
                 newStatus = 'proposal_approved';
             } else if (status === 'rejected') {
-                if (group.proposalAttempts >= 2 || phase === 're-proposal' || group.status === 'proposal_revision') {
+                // If attempts exhausted (2 previous attempts means this is the 3rd decision), fail.
+                // Current attempts at start of request is group.proposalAttempts.
+                // If attempts = 2, this is 3rd try -> Fail.
+                if (group.proposalAttempts >= 2 || phase === 're-proposal') {
                     newStatus = 'failed';
                     group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.proposalAttempts + 1}).`);
                 } else {
@@ -709,7 +714,7 @@ export const evaluateGroup = async (req, res) => {
             if (status === 'approved') {
                 newStatus = 'srs_approved';
             } else if (status === 'rejected') {
-                if (group.srsAttempts >= 2 || phase === 're-srs' || group.status === 'srs_revision') {
+                if (group.srsAttempts >= 2 || phase === 're-srs') {
                     newStatus = 'failed';
                     group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.srsAttempts + 1}).`);
                 } else {
@@ -725,8 +730,7 @@ export const evaluateGroup = async (req, res) => {
             const validPreviousStatuses = ['proposal_approved', 'internal_minor_revision', 'internal_major_revision', 're_internal_defense', 'internal_defense', 'srs_approved', 'internal_rejected'];
 
             if (!validPreviousStatuses.includes(group.status) && !group.status.includes('internal') && !group.status.includes('srs')) {
-                // Relaxed check slightly but ideally should follow srs_approved -> internal
-                // return res.status(400).json({ message: `Group is not eligible for Internal Defense. Current status: ${group.status}` });
+                // Relaxed check
             }
 
             if (status === 'approved') {
