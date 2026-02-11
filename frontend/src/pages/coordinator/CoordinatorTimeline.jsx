@@ -227,15 +227,17 @@ const CoordinatorTimeline = () => {
                                     <>
                                         <PhaseCard timeline={t} phase="groupRegistration" title="Groups" icon={FaUsers} />
                                         <PhaseCard timeline={t} phase="proposalSubmission" title="Proposals" icon={FaFileContract} />
-                                        <PhaseCard timeline={t} phase="proposalDefense" title="Defense" icon={FaChalkboardTeacher} />
+                                        <PhaseCard timeline={t} phase="proposalDefense" title="Prop. Defense" icon={FaChalkboardTeacher} />
                                         <PhaseCard timeline={t} phase="reProposalSubmission" title="Re-Proposals" icon={FaFileContract} />
-                                        <PhaseCard timeline={t} phase="reProposalDefense" title="Re-Defense" icon={FaChalkboardTeacher} />
-                                        <PhaseCard timeline={t} phase="internalDefense" title="Internal" icon={FaCalendarCheck} />
+                                        <PhaseCard timeline={t} phase="reProposalDefense" title="Re-Prop. Def." icon={FaChalkboardTeacher} />
+                                        <PhaseCard timeline={t} phase="srsSubmission" title="SRS Sub." icon={FaFileContract} />
+                                        <PhaseCard timeline={t} phase="srsDefense" title="SRS Defense" icon={FaChalkboardTeacher} />
+                                        <PhaseCard timeline={t} phase="reSrsDefense" title="Re-SRS Def." icon={FaChalkboardTeacher} />
                                     </>
                                 ) : (
                                     <>
-                                        <PhaseCard timeline={t} phase="groupRegistration" title="Registration" icon={FaUsers} />
-                                        <PhaseCard timeline={t} phase="srsDefense" title="SRS Defense" icon={FaFileContract} />
+                                        <PhaseCard timeline={t} phase="internalDefense" title="Internal Def." icon={FaCalendarCheck} />
+                                        <PhaseCard timeline={t} phase="reInternalDefense" title="Re-Internal" icon={FaCalendarCheck} />
                                     </>
                                 )}
                             </div>

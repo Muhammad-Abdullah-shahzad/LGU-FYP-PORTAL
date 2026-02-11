@@ -7,7 +7,7 @@ import User from '../models/User.js';
 // @access  Private/Coordinator
 export const createDefensePanel = async (req, res) => {
     try {
-        const { panelType, members, chairperson, academicYear, semester } = req.body;
+        const { panelType, members, chairperson, academicYear, semester, batch } = req.body;
 
         // Validate members are teachers
         const teachers = await User.find({
@@ -30,6 +30,7 @@ export const createDefensePanel = async (req, res) => {
             chairperson,
             academicYear,
             semester,
+            batch,
             createdBy: req.user._id
         });
 
@@ -57,7 +58,18 @@ export const deleteDefensePanel = async (req, res) => {
         }
 
         if (panel.assignedGroups && panel.assignedGroups.length > 0) {
-            return res.status(400).json({ message: 'Cannot delete panel with assigned groups. Reassign groups first.' });
+            let updateField = '';
+            if (panel.panelType === 'proposal') updateField = 'proposalPanel';
+            else if (panel.panelType === 'internal') updateField = 'internalPanel';
+            else if (panel.panelType === 'srs') updateField = 'srsPanel';
+            else if (panel.panelType === 'external') updateField = 'externalPanel';
+
+            if (updateField) {
+                await Group.updateMany(
+                    { _id: { $in: panel.assignedGroups } },
+                    { $set: { [updateField]: null } }
+                );
+            }
         }
 
         await DefensePanel.findByIdAndDelete(req.params.id);
@@ -74,12 +86,13 @@ export const deleteDefensePanel = async (req, res) => {
 // @access  Private/Coordinator
 export const getAllPanels = async (req, res) => {
     try {
-        const { panelType, academicYear, semester } = req.query;
+        const { panelType, academicYear, semester, batch } = req.query;
 
         const filter = {};
         if (panelType) filter.panelType = panelType;
         if (academicYear) filter.academicYear = academicYear;
         if (semester) filter.semester = parseInt(semester);
+        if (batch) filter.batch = batch;
 
         const panels = await DefensePanel.find(filter)
             .populate('members chairperson', 'firstName lastName email domain designation')

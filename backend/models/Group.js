@@ -87,9 +87,12 @@ const groupSchema = new mongoose.Schema({
             'internal_minor_revision',
             'internal_major_revision',
             're_internal_defense',
+            'srs_submitted',
             'srs_defense',
             'srs_approved',
+            'srs_rejected',
             'srs_revision',
+            're_srs_defense',
             'external_defense',
             'completed',
             'failed'
@@ -131,6 +134,10 @@ const groupSchema = new mongoose.Schema({
     },
     srsDefenseDate: Date,
     srsRemarks: String,
+    srsAttempts: {
+        type: Number,
+        default: 0
+    },
 
     // External Defense
     externalPanel: {

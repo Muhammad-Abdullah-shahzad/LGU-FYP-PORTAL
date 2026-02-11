@@ -63,6 +63,31 @@ const timelineSchema = new mongoose.Schema({
         default: 'Closed'
     },
 
+    srsSubmissionStart: Date,
+    srsSubmissionEnd: Date,
+    srsSubmissionStatus: {
+        type: String,
+        enum: ['Open', 'Closed'],
+        default: 'Closed'
+    },
+
+    srsDefenseStart: Date,
+    srsDefenseEnd: Date,
+    srsDefenseStatus: {
+        type: String,
+        enum: ['Open', 'Closed'],
+        default: 'Closed'
+    },
+
+    reSrsDefenseStart: Date,
+    reSrsDefenseEnd: Date,
+    reSrsDefenseStatus: {
+        type: String,
+        enum: ['Open', 'Closed'],
+        default: 'Closed'
+    },
+
+    // 8th Semester Phases
     internalDefenseStart: Date,
     internalDefenseEnd: Date,
     internalDefenseStatus: {
@@ -71,10 +96,9 @@ const timelineSchema = new mongoose.Schema({
         default: 'Closed'
     },
 
-    // 8th Semester Phases
-    srsDefenseStart: Date,
-    srsDefenseEnd: Date,
-    srsDefenseStatus: {
+    reInternalDefenseStart: Date,
+    reInternalDefenseEnd: Date,
+    reInternalDefenseStatus: {
         type: String,
         enum: ['Open', 'Closed'],
         default: 'Closed'

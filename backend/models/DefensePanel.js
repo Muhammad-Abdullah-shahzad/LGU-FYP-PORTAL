@@ -29,6 +29,11 @@ const defensePanelSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    batch: {
+        type: String,
+        enum: ['Fall', 'Spring'],
+        default: 'Fall'
+    },
     semester: {
         type: Number,
         required: true
@@ -62,7 +67,8 @@ defensePanelSchema.pre('validate', async function (next) {
     if (!this.panelName || this.isNew) {
         const count = await mongoose.model('DefensePanel').countDocuments({
             panelType: this.panelType,
-            academicYear: this.academicYear
+            academicYear: this.academicYear,
+            batch: this.batch
         });
 
         const typePrefix = {
@@ -73,7 +79,7 @@ defensePanelSchema.pre('validate', async function (next) {
             'external': 'EP'
         };
 
-        this.panelName = `${typePrefix[this.panelType]}-${this.academicYear}-${String(count + 1).padStart(2, '0')}`;
+        this.panelName = `${typePrefix[this.panelType]}-${this.academicYear}-${this.batch.charAt(0)}-${String(count + 1).padStart(2, '0')}`;
     }
     next();
 });

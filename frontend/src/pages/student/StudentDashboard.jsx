@@ -270,11 +270,25 @@ const StudentDashboard = () => {
                                     { name: 'Group Formation', start: timeline.groupRegistrationStart, end: timeline.groupRegistrationEnd, active: timeline.groupRegistrationStatus === 'Open' },
                                     { name: 'Proposal Cycle', start: timeline.proposalSubmissionStart, end: timeline.proposalSubmissionEnd, active: timeline.proposalSubmissionStatus === 'Open' },
                                     { name: 'Proposal Defense', start: timeline.proposalDefenseStart, end: timeline.proposalDefenseEnd, active: timeline.proposalDefenseStatus === 'Open' },
-                                    // Only show re-proposal if they were rejected and phase is active
-                                    ...(timeline.reProposalDefenseStatus === 'Open' && (group?.status === 'proposal_rejected' || group?.status === 'proposal_revision' || group?.status === 're-proposal' || (group?.proposalAttempts > 0 && group?.status !== 'proposal_approved')) ? [
+                                    // Re-Proposal
+                                    ...(timeline.reProposalDefenseStatus === 'Open' && (group?.status === 'proposal_rejected' || group?.status === 'proposal_revision' || group?.status === 're-proposal' || (group?.proposalAttempts > 0 && group?.status !== 'proposal_approved' && group?.status !== 'srs_submitted')) ? [
                                         { name: 'Re-Proposal Defense', start: timeline.reProposalDefenseStart, end: timeline.reProposalDefenseEnd, active: timeline.reProposalDefenseStatus === 'Open' }
                                     ] : []),
-                                    { name: 'Internal Defense', start: timeline.internalDefenseStart, end: timeline.internalDefenseEnd, active: timeline.internalDefenseStatus === 'Open' }
+
+                                    // SRS
+                                    { name: 'SRS Submission', start: timeline.srsSubmissionStart, end: timeline.srsSubmissionEnd, active: timeline.srsSubmissionStatus === 'Open' },
+                                    { name: 'SRS Defense', start: timeline.srsDefenseStart, end: timeline.srsDefenseEnd, active: timeline.srsDefenseStatus === 'Open' },
+                                    // Re-SRS
+                                    ...(timeline.reSrsDefenseStatus === 'Open' && (group?.status === 'srs_rejected' || group?.status === 'srs_revision' || (group?.srsAttempts > 0 && group?.status !== 'srs_approved' && !group?.status.includes('internal'))) ? [
+                                        { name: 'Re-SRS Defense', start: timeline.reSrsDefenseStart, end: timeline.reSrsDefenseEnd, active: timeline.reSrsDefenseStatus === 'Open' }
+                                    ] : []),
+
+                                    // Internal
+                                    { name: 'Internal Defense', start: timeline.internalDefenseStart, end: timeline.internalDefenseEnd, active: timeline.internalDefenseStatus === 'Open' },
+                                    // Re-Internal
+                                    ...(timeline.reInternalDefenseStatus === 'Open' && (group?.status === 'internal_rejected' || group?.status === 'internal_minor_revision' || group?.internalAttempts > 0) ? [
+                                        { name: 'Re-Internal Defense', start: timeline.reInternalDefenseStart, end: timeline.reInternalDefenseEnd, active: timeline.reInternalDefenseStatus === 'Open' }
+                                    ] : [])
                                 ].map((phase, idx) => {
                                     const isDone = new Date(phase.end) < new Date();
                                     return (

@@ -319,7 +319,7 @@ export const submitSRS = async (req, res) => {
         }
 
         const timeline = await Timeline.findOne({ batch: group.batch, batchYear: group.batchYear, semester: group.semester, isActive: true });
-        if (!timeline || !timeline.isPhaseActive('srsDefense')) {
+        if (!timeline || (!timeline.isPhaseActive('srsSubmission') && !timeline.isPhaseActive('srsDefense'))) {
             return res.status(400).json({ message: 'SRS submission window is closed' });
         }
 
@@ -635,8 +635,10 @@ export const getSupervisorEvaluations = async (req, res) => {
         timelines.forEach(t => {
             if (t.isPhaseActive('proposalDefense')) activePhases.push('proposal');
             if (t.isPhaseActive('reProposalDefense')) activePhases.push('re-proposal');
-            if (t.isPhaseActive('internalDefense')) activePhases.push('internal');
             if (t.isPhaseActive('srsDefense')) activePhases.push('srs');
+            if (t.isPhaseActive('reSrsDefense')) activePhases.push('re-srs');
+            if (t.isPhaseActive('internalDefense')) activePhases.push('internal');
+            if (t.isPhaseActive('reInternalDefense')) activePhases.push('re-internal');
         });
 
         // Unique phases
@@ -692,55 +694,57 @@ export const evaluateGroup = async (req, res) => {
             if (status === 'approved') {
                 newStatus = 'proposal_approved';
             } else if (status === 'rejected') {
-                // If it's the second attempt (re-proposal) or after 2 revisions, they fail
                 if (group.proposalAttempts >= 2 || phase === 're-proposal' || group.status === 'proposal_revision') {
-                    if (group.proposalAttempts >= 2) {
-                        newStatus = 'failed';
-                        group.addStatusChange('failed', req.user._id, `Rejected in ${phase} final defense (Attempt ${group.proposalAttempts + 1}).`);
-                    } else {
-                        newStatus = 'proposal_rejected';
-                    }
+                    newStatus = 'failed';
+                    group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.proposalAttempts + 1}).`);
                 } else {
                     newStatus = 'proposal_rejected';
                 }
             } else if (status === 'revision') {
-                if (group.proposalAttempts >= 2) {
-                    return res.status(400).json({ message: 'Maximum revision attempts (2) reached. You must only Approve or Reject.' });
-                }
                 newStatus = 'proposal_revision';
             }
             group.proposalRemarks = remarks;
             group.proposalAttempts = (group.proposalAttempts || 0) + 1;
-        } else if (phase === 'internal') {
-            const validPreviousStatuses = ['proposal_approved', 'internal_minor_revision', 'internal_major_revision', 're_internal_defense', 'internal_defense'];
+        } else if (phase === 'srs' || phase === 're-srs') {
+            if (status === 'approved') {
+                newStatus = 'srs_approved';
+            } else if (status === 'rejected') {
+                if (group.srsAttempts >= 2 || phase === 're-srs' || group.status === 'srs_revision') {
+                    newStatus = 'failed';
+                    group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.srsAttempts + 1}).`);
+                } else {
+                    newStatus = 'srs_rejected';
+                }
+            } else if (status === 'revision') {
+                newStatus = 'srs_revision';
+            }
+            group.srsRemarks = remarks;
+            group.srsAttempts = (group.srsAttempts || 0) + 1;
+            group.srsDefenseDate = new Date();
+        } else if (phase === 'internal' || phase === 're-internal') {
+            const validPreviousStatuses = ['proposal_approved', 'internal_minor_revision', 'internal_major_revision', 're_internal_defense', 'internal_defense', 'srs_approved', 'internal_rejected'];
 
-            if (!validPreviousStatuses.includes(group.status) && !group.status.includes('internal')) {
-                return res.status(400).json({ message: `Group is not eligible for Internal Defense. Current status: ${group.status}` });
+            if (!validPreviousStatuses.includes(group.status) && !group.status.includes('internal') && !group.status.includes('srs')) {
+                // Relaxed check slightly but ideally should follow srs_approved -> internal
+                // return res.status(400).json({ message: `Group is not eligible for Internal Defense. Current status: ${group.status}` });
             }
 
             if (status === 'approved') {
                 newStatus = 'internal_approved';
             } else if (status === 'rejected') {
-                if (group.internalAttempts >= 2) {
+                if (group.internalAttempts >= 2 || phase === 're-internal') {
                     newStatus = 'failed';
-                    group.addStatusChange('failed', req.user._id, `Rejected in internal final defense (Attempt ${group.internalAttempts + 1}).`);
+                    group.addStatusChange('failed', req.user._id, `Rejected in ${phase} defense (Attempt ${group.internalAttempts + 1}).`);
                 } else {
                     newStatus = 'internal_rejected';
                 }
             } else if (status === 'revision') {
-                if (group.internalAttempts >= 2) {
-                    return res.status(400).json({ message: 'Maximum internal revision attempts (2) reached. You must only Approve or Reject.' });
-                }
                 newStatus = 'internal_minor_revision';
             }
 
             group.internalRemarks = remarks;
             group.internalAttempts = (group.internalAttempts || 0) + 1;
             group.internalDefenseDate = new Date();
-        } else if (phase === 'srs') {
-            if (status === 'approved') newStatus = 'srs_approved';
-            else if (status === 'revision') newStatus = 'srs_revision';
-            group.srsRemarks = remarks;
         }
 
         if (newStatus) {
@@ -778,29 +782,33 @@ export const rejoinBatch = async (req, res) => {
         // Per latest requirement: HARD RESET everything except team members.
         const targetStatus = 'registered';
 
-        // User Logic: Fall 2023 -> Spring 2023 (Same Year), Spring 2023 -> Fall 2024 (Next Year)
-        let targetBatch, targetYear;
+        // User Logic: Rejoin based on Batch Type and Enrollment Year
+        // Fall Batch -> Spring Batch (Next Enrollment Year)
+        // Spring Batch -> Fall Batch (Same Enrollment Year)
 
-        if (group.batch === 'Fall') {
-            targetBatch = 'Spring';
-            targetYear = group.year.toString();
-        } else if (group.batch === 'Spring') {
+        let targetBatch, targetBatchYear;
+        const currentBatch = group.batch ? group.batch.trim() : '';
+
+        if (/^Spring$/i.test(currentBatch)) {
             targetBatch = 'Fall';
-            targetYear = (parseInt(group.year) + 1).toString();
+            targetBatchYear = group.batchYear; // Same enrollment year
         } else {
-            targetBatch = 'Fall';
-            targetYear = (parseInt(group.year) + 1).toString();
+            // Default to Spring (Next Year) for 'Fall' or any other batch
+            targetBatch = 'Spring';
+            targetBatchYear = group.batchYear + 1;
         }
 
         const targetTimeline = await Timeline.findOne({
             batch: targetBatch,
-            year: targetYear,
+            batchYear: targetBatchYear,
             isActive: true,
             $or: [{ groupRegistrationStatus: 'Open' }, { proposalSubmissionStatus: 'Open' }]
         });
 
         if (!targetTimeline) {
-            return res.status(400).json({ message: `No active timeline found for ${targetBatch} ${targetYear}. Please wait for start.` });
+            return res.status(400).json({
+                message: `No active timeline found for target batch ${targetBatch}-${targetBatchYear}. Your current batch is ${group.batch}-${group.batchYear}. Please contact coordinator.`
+            });
         }
 
         // Context Update

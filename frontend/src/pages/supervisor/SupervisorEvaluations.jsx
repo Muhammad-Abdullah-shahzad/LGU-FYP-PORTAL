@@ -51,12 +51,19 @@ const SupervisorEvaluations = () => {
 
                 // Allow re-proposal groups if phase is active
                 if ((g.status === 'proposal_rejected' || g.status === 'proposal_revision') && activePhases.includes('re-proposal')) return true;
+                if ((g.status === 'srs_rejected' || g.status === 'srs_revision') && activePhases.includes('re-srs')) return true;
+                if ((g.status === 'internal_rejected' || g.status === 'internal_minor_revision') && activePhases.includes('re-internal')) return true;
 
                 const isProposalApproved = g.status === 'proposal_approved';
                 const isInternalApproved = g.status === 'internal_approved';
-                if (isProposalApproved && activePhases.includes('internal')) return true;
-                if (isInternalApproved && (activePhases.includes('srs') || activePhases.includes('external'))) return true;
-                if (g.status.includes('approved')) return false;
+                const isSrsApproved = g.status === 'srs_approved';
+
+                if (isProposalApproved && activePhases.includes('srs')) return true; // Flow: Proposal -> SRS (7th Sem) -> Wait for 8th (Internal)
+                if (isSrsApproved && activePhases.includes('internal')) return true;
+                if (isInternalApproved && activePhases.includes('external')) return true;
+
+                // Fallback for current phase logic
+                if (g.status.includes('approved')) return false; // Hide approved unless next phase is active
                 if (g.status.includes('rejected')) return false;
                 return true;
             }
@@ -71,19 +78,29 @@ const SupervisorEvaluations = () => {
         let defaultPhase = activePhases[0] || 'proposal';
 
         // Priority: Match Group Status to Next Phase
-        if (group.status === 'proposal_approved' && activePhases.includes('internal')) {
-            defaultPhase = 'internal';
-        } else if ((group.status === 'internal_approved') && activePhases.includes('srs')) {
+        if (group.status === 'proposal_approved' && activePhases.includes('srs')) {
             defaultPhase = 'srs';
+        } else if (group.status === 'srs_approved' && activePhases.includes('internal')) {
+            defaultPhase = 'internal';
+        } else if (group.status === 'internal_approved' && activePhases.includes('external')) {
+            defaultPhase = 'external';
         }
-        // Priority: If group is in re-defense state and re-proposal phase is active
-        else if ((group.status === 'proposal_rejected' || group.status === 'proposal_revision' || group.status === 're-proposal' || group.proposalAttempts > 0) && activePhases.includes('re-proposal')) {
+
+        // Re-defense priorities
+        else if ((group.status === 'proposal_rejected' || group.status === 'proposal_revision' || group.status === 're-proposal') && activePhases.includes('re-proposal')) {
             defaultPhase = 're-proposal';
         }
+        else if ((group.status === 'srs_rejected' || group.status === 'srs_revision') && activePhases.includes('re-srs')) {
+            defaultPhase = 're-srs';
+        }
+        else if ((group.status === 'internal_rejected' || group.status === 'internal_minor_revision') && activePhases.includes('re-internal')) {
+            defaultPhase = 're-internal';
+        }
+
         // Fallback: If currently in a revision state, stick to that phase
         else if (group.status.includes('proposal') && activePhases.includes('proposal')) defaultPhase = 'proposal';
-        else if (group.status.includes('internal') && activePhases.includes('internal')) defaultPhase = 'internal';
         else if (group.status.includes('srs') && activePhases.includes('srs')) defaultPhase = 'srs';
+        else if (group.status.includes('internal') && activePhases.includes('internal')) defaultPhase = 'internal';
 
         setEvaluatingGroup(group);
         setEvaluationData({
@@ -227,10 +244,12 @@ const SupervisorEvaluations = () => {
                                                             // Logic to hide revision after 2 attempts
                                                             const isProposalPhase = group.status.includes('proposal') || group.status === 'registered' || group.status === 'proposal_submitted';
                                                             const isInternalPhase = group.status.includes('internal') || group.status === 'proposal_approved';
+                                                            const isSrsPhase = group.status.includes('srs') || group.status === 'proposal_approved'; // NOTE: logic overlap, refine
 
                                                             let attempts = 0;
-                                                            if (isProposalPhase) attempts = group.proposalAttempts || 0;
-                                                            else if (isInternalPhase) attempts = group.internalAttempts || 0;
+                                                            if (group.status.includes('proposal') || group.status === 're-proposal') attempts = group.proposalAttempts || 0;
+                                                            else if (group.status.includes('internal') || group.status === 're-internal') attempts = group.internalAttempts || 0;
+                                                            else if (group.status.includes('srs') || group.status === 're-srs') attempts = group.srsAttempts || 0;
 
                                                             if (attempts < 2) {
                                                                 return <button className="eval-btn btn-revision" onClick={() => handleOpenModal(group, 'revision')}>Revision</button>;

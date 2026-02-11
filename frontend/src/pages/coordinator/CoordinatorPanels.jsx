@@ -30,7 +30,8 @@ const CoordinatorPanels = () => {
         panelType: 'proposal',
         members: [],
         chairperson: '',
-        academicYear: new Date().getFullYear().toString(),
+        academicYear: (new Date().getFullYear() - 3).toString(),
+        batch: 'Fall',
         semester: 7
     });
 
@@ -75,7 +76,8 @@ const CoordinatorPanels = () => {
                 panelType: 'proposal',
                 members: [],
                 chairperson: '',
-                academicYear: new Date().getFullYear().toString(),
+                academicYear: (new Date().getFullYear() - 3).toString(),
+                batch: 'Fall',
                 semester: 7
             });
         } catch (err) {
@@ -261,11 +263,18 @@ const CoordinatorPanels = () => {
                                         <option value="external">External Defense</option>
                                     </select>
                                 </div>
-                                <div className="col-6">
-                                    <label className="modal-label-minimal">Session</label>
-                                    <input type="number" className="input-minimal" value={formData.academicYear} onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} />
+                                <div className="col-4">
+                                    <label className="modal-label-minimal">Batch Enrollment Year</label>
+                                    <input type="number" className="input-minimal" placeholder="e.g. 2020" value={formData.academicYear} onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} />
                                 </div>
-                                <div className="col-6">
+                                <div className="col-4">
+                                    <label className="modal-label-minimal">Batch Type</label>
+                                    <select className="input-minimal" value={formData.batch} onChange={(e) => setFormData({ ...formData, batch: e.target.value })}>
+                                        <option value="Fall">Fall</option>
+                                        <option value="Spring">Spring</option>
+                                    </select>
+                                </div>
+                                <div className="col-4">
                                     <label className="modal-label-minimal">Semester</label>
                                     <select className="input-minimal" value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) })}>
                                         <option value={7}>Semester 7</option>
