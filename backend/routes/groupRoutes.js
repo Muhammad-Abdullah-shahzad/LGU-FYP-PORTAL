@@ -9,10 +9,12 @@ import {
     requestSupervisor,
     getAllGroups,
     getSupervisorGroups,
+    getSupervisorGroupDetails,
     getSupervisorRequests,
     respondToSupervisorRequest,
     getSupervisorEvaluations,
     evaluateGroup,
+    respondToDefenseApproval,
     getInvitations,
     respondToInvitation,
     rejoinBatch
@@ -22,26 +24,28 @@ import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// Student routes
-router.post('/', protect, authorize('student'), createGroup);
-router.get('/my-group', protect, authorize('student'), getMyGroup);
-router.post('/:id/proposal', protect, authorize('student'), upload.single('proposal'), submitProposal);
-router.post('/:id/srs', protect, authorize('student'), upload.single('srs'), submitSRS);
-router.post('/:id/final-report', protect, authorize('student'), upload.single('finalReport'), submitFinalReport);
-router.put('/:id/details', protect, authorize('student'), updateGroupDetails);
-router.post('/:id/request-supervisor', protect, authorize('student'), requestSupervisor);
+// General routes
+router.get('/', protect, authorize('coordinator'), getAllGroups);
 router.get('/invitations', protect, authorize('student'), getInvitations);
 router.put('/:id/invitation-response', protect, authorize('student'), respondToInvitation);
-router.post('/:id/rejoin', protect, authorize('student'), rejoinBatch);
 
-// Supervisor routes
+// Supervisor Routes
 router.get('/supervisor/my-groups', protect, authorize('supervisor'), getSupervisorGroups);
 router.get('/supervisor/requests', protect, authorize('supervisor'), getSupervisorRequests);
+router.get('/supervisor/evaluations', protect, authorize('supervisor', 'faculty'), getSupervisorEvaluations);
+router.get('/supervisor/:id/details', protect, authorize('supervisor'), getSupervisorGroupDetails);
 router.put('/:id/supervisor-response', protect, authorize('supervisor'), respondToSupervisorRequest);
-router.get('/supervisor/evaluations', protect, authorize('supervisor'), getSupervisorEvaluations);
-router.put('/:id/evaluate', protect, authorize('supervisor'), evaluateGroup);
+router.put('/:id/defense-approval', protect, authorize('supervisor'), respondToDefenseApproval);
+router.put('/:id/evaluate', protect, authorize('supervisor', 'faculty'), evaluateGroup);
 
-// Coordinator routes
-router.get('/', protect, authorize('coordinator'), getAllGroups);
+// Student Routes
+router.post('/', protect, authorize('student'), createGroup);
+router.get('/my-group', protect, authorize('student'), getMyGroup);
+router.post('/:id/request-supervisor', protect, authorize('student'), requestSupervisor);
+router.post('/:id/proposal', upload.single('proposal'), protect, authorize('student'), submitProposal);
+router.post('/:id/srs', upload.single('srs'), protect, authorize('student'), submitSRS);
+router.post('/:id/final-report', upload.single('finalReport'), protect, authorize('student'), submitFinalReport);
+router.put('/:id/details', protect, authorize('student'), updateGroupDetails);
+router.post('/:id/rejoin', protect, authorize('student'), rejoinBatch);
 
 export default router;

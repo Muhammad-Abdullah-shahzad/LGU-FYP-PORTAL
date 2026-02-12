@@ -45,8 +45,8 @@
 }
 
 .eval-card-minimal:hover {
-    border-color: #4f46e5;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    border-color: #13633d;
+    box-shadow: 0 4px 15px rgba(19, 99, 61, 0.05);
 }
 
 .eval-body {
@@ -113,12 +113,21 @@
 }
 
 .btn-approve {
-    background: #4f46e5;
+    background: #13633d;
     color: white;
 }
 
 .btn-approve:hover {
-    background: #4338ca;
+    background: #0f4d30;
+}
+
+.eval-btn.disabled {
+    cursor: not-allowed;
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .btn-revision {
@@ -153,7 +162,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 9999;
 }
 
 .eval-modal {
@@ -194,7 +203,7 @@
 }
 
 .eval-textarea:focus {
-    border-color: #4f46e5;
+    border-color: #13633d;
 }
 
 .eval-modal-footer {

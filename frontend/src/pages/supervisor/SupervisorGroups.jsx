@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import api from '../../api/axios';
 import { HiOutlineUserGroup, HiOutlineExternalLink } from 'react-icons/hi';
@@ -7,6 +8,7 @@ import './SupervisorGroups.css';
 const SupervisorGroups = () => {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchGroups();
@@ -74,7 +76,10 @@ const SupervisorGroups = () => {
                                                 </span>
                                             </td>
                                             <td className="text-end">
-                                                <button className="action-btn-sharp" onClick={() => alert('Detailed view coming soon!')}>
+                                                <button
+                                                    className="action-btn-sharp"
+                                                    onClick={() => navigate(`/supervisor/groups/${group._id}`)}
+                                                >
                                                     Review <HiOutlineExternalLink size={14} className="ms-1" />
                                                 </button>
                                             </td>
@@ -91,3 +96,4 @@ const SupervisorGroups = () => {
 };
 
 export default SupervisorGroups;
+

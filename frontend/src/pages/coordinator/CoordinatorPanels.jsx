@@ -49,7 +49,7 @@ const CoordinatorPanels = () => {
             const [panelsRes, usersRes, groupsRes] = await Promise.all([
                 api.get('/panels'),
                 api.get('/users'),
-                api.get('/groups')
+                api.get('/groups?onlyActiveTimeline=true')
             ]);
             setPanels(panelsRes.data.panels || []);
             const facultyMembers = usersRes.data.users?.filter(u => u.role === 'supervisor') || [];

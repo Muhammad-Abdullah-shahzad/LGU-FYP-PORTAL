@@ -47,8 +47,8 @@
 .domain-pill-outline {
     font-size: 0.65rem;
     font-weight: 700;
-    color: #4f46e5;
-    background: #f5f3ff;
+    color: #13633d;
+    background: #f0fdf4;
     padding: 0.25rem 0.6rem;
     border-radius: 4px;
 }
@@ -62,8 +62,8 @@
 }
 
 .status-primary {
-    background: #eff6ff;
-    color: #2563eb;
+    background: #f0fdf4;
+    color: #13633d;
 }
 
 .status-success {
@@ -83,9 +83,9 @@
 }
 
 .action-btn-sharp:hover {
-    background: #4f46e5;
+    background: #13633d;
     color: white;
-    border-color: #4f46e5;
+    border-color: #13633d;
 }
 
 @keyframes fadeInSlide {

@@ -107,6 +107,12 @@ const groupSchema = new mongoose.Schema({
         default: null
     },
     proposalDefenseDate: Date,
+    proposalSupervisorApproval: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    proposalSupervisorRemarks: String,
     proposalRemarks: String,
     proposalAttempts: {
         type: Number,
@@ -120,6 +126,12 @@ const groupSchema = new mongoose.Schema({
         default: null
     },
     internalDefenseDate: Date,
+    internalSupervisorApproval: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    internalSupervisorRemarks: String,
     internalRemarks: String,
     internalAttempts: {
         type: Number,
@@ -133,6 +145,12 @@ const groupSchema = new mongoose.Schema({
         default: null
     },
     srsDefenseDate: Date,
+    srsSupervisorApproval: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    srsSupervisorRemarks: String,
     srsRemarks: String,
     srsAttempts: {
         type: Number,
@@ -146,6 +164,12 @@ const groupSchema = new mongoose.Schema({
         default: null
     },
     externalDefenseDate: Date,
+    externalSupervisorApproval: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    externalSupervisorRemarks: String,
     externalRemarks: String,
     finalGrade: String,
 

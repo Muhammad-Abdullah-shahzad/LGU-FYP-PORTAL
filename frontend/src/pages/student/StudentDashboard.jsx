@@ -235,13 +235,55 @@ const StudentDashboard = () => {
                                                     <div className="fw-bold" style={{ fontSize: '0.75rem' }}>{m.firstName} {m.lastName}</div>
                                                     <div className="text-muted" style={{ fontSize: '0.65rem' }}>{m.registrationNumber}</div>
                                                 </div>
-                                                {group.leader && group.leader._id === m._id && (
+                                                {group.leader && (group.leader?._id === m._id || group.leader === m._id) && (
                                                     <span className="badge bg-primary text-white x-small" style={{ fontSize: '0.5rem' }}>LEADER</span>
                                                 )}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
+
+                                {/* Supervisor Defense Approvals */}
+                                {timeline && (
+                                    <div className="mt-4 pt-3 border-top">
+                                        <h6 className="modern-label mb-3">Supervisor Defense Clearance</h6>
+                                        <div className="row g-2">
+                                            {[
+                                                { phase: 'proposal', label: 'Proposal Defense', active: timeline.proposalDefenseStatus === 'Open' || timeline.reProposalDefenseStatus === 'Open' },
+                                                { phase: 'srs', label: 'SRS Defense', active: timeline.srsDefenseStatus === 'Open' || timeline.reSrsDefenseStatus === 'Open' },
+                                                { phase: 'internal', label: 'Internal Defense', active: timeline.internalDefenseStatus === 'Open' || timeline.reInternalDefenseStatus === 'Open' }
+                                            ].map(def => {
+                                                const approval = group[`${def.phase}SupervisorApproval`];
+                                                const remarks = group[`${def.phase}SupervisorRemarks`];
+
+                                                if (!def.active && !approval) return null;
+
+                                                return (
+                                                    <div key={def.phase} className="col-12">
+                                                        <div className={`p-3 rounded-lg border shadow-sm ${approval === 'approved' ? 'bg-success bg-opacity-5' : approval === 'rejected' ? 'bg-danger bg-opacity-5' : 'bg-light'}`}>
+                                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                                <span className="fw-bold text-dark" style={{ fontSize: '0.75rem' }}>{def.label}</span>
+                                                                <span className={`badge bg-${approval === 'approved' ? 'success' : approval === 'rejected' ? 'danger' : 'warning'} rounded-pill`} style={{ fontSize: '0.55rem' }}>
+                                                                    {approval?.toUpperCase() || 'AWAITING APPROVAL'}
+                                                                </span>
+                                                            </div>
+                                                            {remarks && (
+                                                                <div className="mt-2 text-muted italic" style={{ fontSize: '0.7rem', borderLeft: '2px solid #ccc', paddingLeft: '8px' }}>
+                                                                    " {remarks} "
+                                                                </div>
+                                                            )}
+                                                            {!approval && def.active && (
+                                                                <div className="mt-2 text-primary x-small fw-bold">
+                                                                    Supervisor must approve your documentation before you can proceed to the panel defense.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="text-center py-4">

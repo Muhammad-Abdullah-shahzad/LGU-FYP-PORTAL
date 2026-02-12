@@ -8,6 +8,7 @@ import StudentGroup from './pages/student/StudentGroup';
 import StudentProposal from './pages/student/StudentProposal';
 import SupervisorRequests from './pages/supervisor/SupervisorRequests';
 import SupervisorGroups from './pages/supervisor/SupervisorGroups';
+import GroupDetails from './pages/supervisor/GroupDetails';
 import CoordinatorDashboard from './pages/coordinator/CoordinatorDashboard';
 import CoordinatorUsers from './pages/coordinator/CoordinatorUsers';
 import CoordinatorGroups from './pages/coordinator/CoordinatorGroups';
@@ -123,6 +124,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['supervisor']}>
                 <SupervisorGroups />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/groups/:id"
+            element={
+              <ProtectedRoute allowedRoles={['supervisor']}>
+                <GroupDetails />
               </ProtectedRoute>
             }
           />

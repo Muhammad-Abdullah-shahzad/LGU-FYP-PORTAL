@@ -159,7 +159,7 @@ const SupervisorDashboard = () => {
                     </div>
 
                     <div className="col-lg-4">
-                        <div className="glass-card bg-primary bg-opacity-5 border-primary border-opacity-10">
+                        <div className="notification-box h-100">
                             <h6 className="section-title mb-2">Faculty Tip</h6>
                             <p className="text-muted m-0" style={{ fontSize: '0.7rem', lineHeight: '1.5' }}>
                                 Regular meetings with your FYP groups increase success rates. Use the evaluation module to keep track of weekly milestones.

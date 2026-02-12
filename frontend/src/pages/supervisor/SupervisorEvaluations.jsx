@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
+import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import './SupervisorEvaluations.css';
 import {
@@ -259,43 +260,85 @@ const SupervisorEvaluations = () => {
                                                             </span>
                                                         ))}
                                                     </div>
-                                                    <div className={`p-2 rounded bg-light border-start border-${group.status.includes('rejected') || group.status === 'failed' ? 'danger' : group.status.includes('approved') ? 'success' : 'primary'} border-4`}>
+                                                    <div className={`p-2 rounded bg-light border-start border-${group.status.includes('rejected') || group.status === 'failed' ? 'danger' : group.status.includes('approved') ? 'success' : 'primary'} border-4 mb-2`}>
                                                         <div className="text-uppercase fw-800 text-muted mb-1" style={{ fontSize: '0.55rem' }}>Milestone Status</div>
                                                         <div className={`fw-bold ${group.status.includes('rejected') || group.status === 'failed' ? 'text-danger' : 'text-dark'} text-uppercase`} style={{ fontSize: '0.75rem' }}>
                                                             {group.status.replace('_', ' ')}
                                                         </div>
                                                     </div>
+
+                                                    {/* Supervisor Approval Status */}
+                                                    {(() => {
+                                                        const phase = activePhases[0]; // Simplified: use first active phase
+                                                        let approval = group[`${phase}SupervisorApproval`];
+                                                        let remarks = group[`${phase}SupervisorRemarks`];
+
+                                                        if (!approval) return null;
+
+                                                        return (
+                                                            <div className={`p-2 rounded mb-2 ${approval === 'approved' ? 'bg-success bg-opacity-10' : 'bg-warning bg-opacity-10'} border-start border-${approval === 'approved' ? 'success' : 'warning'} border-4`}>
+                                                                <div className="text-uppercase fw-800 text-muted mb-1" style={{ fontSize: '0.55rem' }}>Supervisor Decision</div>
+                                                                <div className={`fw-bold ${approval === 'approved' ? 'text-success' : 'text-warning'} text-uppercase`} style={{ fontSize: '0.7rem' }}>
+                                                                    {approval}
+                                                                </div>
+                                                                {remarks && <div className="text-muted mt-1 italic" style={{ fontSize: '0.65rem' }}>"{remarks}"</div>}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
 
                                                 {activePhases.length > 0 && (
                                                     <div className="eval-actions">
-                                                        <button className="eval-btn btn-approve" onClick={() => handleOpenModal(group, 'approved')}>Approve</button>
                                                         {(() => {
-                                                            // Logic to hide revision after 2 attempts
-                                                            let attempts = 0;
-                                                            // Determine context based on active phase priority
-                                                            // If Internal is active and group is ready for it (srs_approved or internal_...), use internal attempts
-                                                            if (activePhases.some(p => p.includes('internal')) && (group.status.includes('internal') || group.status === 'srs_approved')) {
-                                                                attempts = group.internalAttempts || 0;
-                                                            }
-                                                            // If SRS active
-                                                            else if (activePhases.some(p => p.includes('srs')) && (group.status.includes('srs') || group.status === 'proposal_approved')) {
-                                                                attempts = group.srsAttempts || 0;
-                                                            }
-                                                            // If Proposal active
-                                                            else {
-                                                                attempts = group.proposalAttempts || 0;
-                                                            }
+                                                            const phase = activePhases[0];
+                                                            const isSupervisorApproved = group[`${phase}SupervisorApproval`] === 'approved';
+                                                            const isReDefense = phase.includes('re-');
 
-                                                            // Only show Revision if attempts < 2
-                                                            // "revise two times then after two times it should show approve reject"
-                                                            // This means for attempt 0 and 1, show Revision. For attempt 2 (3rd try), hide it.
-                                                            if (attempts < 2) {
-                                                                return <button className="eval-btn btn-revision" onClick={() => handleOpenModal(group, 'revision')}>Revision</button>;
-                                                            }
-                                                            return null;
+                                                            // Allow evaluation if supervisor approved OR if it's a re-defense (re-defense rules might vary, but usually implies they were already in the loop)
+                                                            // For simplicity and matching requirement: Block if not approved.
+                                                            const canEvaluate = isSupervisorApproved || isReDefense;
+
+                                                            return (
+                                                                <>
+                                                                    <button
+                                                                        className={`eval-btn btn-approve ${!canEvaluate ? 'disabled opacity-50' : ''}`}
+                                                                        onClick={() => canEvaluate && handleOpenModal(group, 'approved')}
+                                                                        disabled={!canEvaluate}
+                                                                    >
+                                                                        Approve
+                                                                    </button>
+
+                                                                    {(() => {
+                                                                        // Logic to hide revision after 2 attempts
+                                                                        let attempts = 0;
+                                                                        if (phase.includes('internal')) attempts = group.internalAttempts || 0;
+                                                                        else if (phase.includes('srs')) attempts = group.srsAttempts || 0;
+                                                                        else attempts = group.proposalAttempts || 0;
+
+                                                                        if (attempts < 2) {
+                                                                            return (
+                                                                                <button
+                                                                                    className={`eval-btn btn-revision ${!canEvaluate ? 'disabled opacity-50' : ''}`}
+                                                                                    onClick={() => canEvaluate && handleOpenModal(group, 'revision')}
+                                                                                    disabled={!canEvaluate}
+                                                                                >
+                                                                                    Revision
+                                                                                </button>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    })()}
+
+                                                                    <button
+                                                                        className={`eval-btn btn-reject ${!canEvaluate ? 'disabled opacity-50' : ''}`}
+                                                                        onClick={() => canEvaluate && handleOpenModal(group, 'rejected')}
+                                                                        disabled={!canEvaluate}
+                                                                    >
+                                                                        Reject
+                                                                    </button>
+                                                                </>
+                                                            );
                                                         })()}
-                                                        <button className="eval-btn btn-reject" onClick={() => handleOpenModal(group, 'rejected')}>Reject</button>
                                                     </div>
                                                 )}
                                             </div>
@@ -307,52 +350,54 @@ const SupervisorEvaluations = () => {
                     </div>
                 )}
 
-                {/* Evaluation Modal */}
-                {evaluatingGroup && (
-                    <div className="eval-modal-overlay">
-                        <div className="eval-modal">
-                            <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h4 className="m-0">Submit Evaluation</h4>
-                                <button className="btn btn-link text-muted p-0" onClick={() => setEvaluatingGroup(null)}>
-                                    <HiOutlineX size={24} />
-                                </button>
-                            </div>
+            </div>
 
-                            <div className="mb-4">
-                                <label className="eval-form-label">Evaluation Phase</label>
-                                <select
-                                    className="form-select border-0 bg-light p-2 rounded-3"
-                                    style={{ fontSize: '0.85rem' }}
-                                    value={evaluationData.phase}
-                                    onChange={(e) => setEvaluationData({ ...evaluationData, phase: e.target.value })}
-                                >
-                                    {activePhases.map(p => (
-                                        <option key={p} value={p} className="text-uppercase">{p} Defense</option>
-                                    ))}
-                                </select>
-                            </div>
+            {/* Evaluation Modal - Portaled to body to ensure full screen overlay */}
+            {evaluatingGroup && createPortal(
+                <div className="eval-modal-overlay">
+                    <div className="eval-modal">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h4 className="m-0">Submit Evaluation</h4>
+                            <button className="btn btn-link text-muted p-0" onClick={() => setEvaluatingGroup(null)}>
+                                <HiOutlineX size={24} />
+                            </button>
+                        </div>
 
-                            <div className="mb-4">
-                                <label className="eval-form-label">Decision: <span className="text-uppercase text-primary">{evaluationData.status}</span></label>
-                                <label className="eval-form-label mt-3">Final Remarks & Feedback</label>
-                                <textarea
-                                    className="eval-textarea"
-                                    placeholder="Provide detailed feedback for the students..."
-                                    value={evaluationData.remarks}
-                                    onChange={(e) => setEvaluationData({ ...evaluationData, remarks: e.target.value })}
-                                ></textarea>
-                            </div>
+                        <div className="mb-4">
+                            <label className="eval-form-label">Evaluation Phase</label>
+                            <select
+                                className="form-select border-0 bg-light p-2 rounded-3"
+                                style={{ fontSize: '0.85rem' }}
+                                value={evaluationData.phase}
+                                onChange={(e) => setEvaluationData({ ...evaluationData, phase: e.target.value })}
+                            >
+                                {activePhases.map(p => (
+                                    <option key={p} value={p} className="text-uppercase">{p} Defense</option>
+                                ))}
+                            </select>
+                        </div>
 
-                            <div className="eval-modal-footer">
-                                <button className="btn btn-light rounded-pill px-4 fw-bold" onClick={() => setEvaluatingGroup(null)}>Cancel</button>
-                                <button className="btn btn-primary rounded-pill px-4 fw-bold" onClick={handleSubmitEvaluation}>
-                                    Confirm Decision
-                                </button>
-                            </div>
+                        <div className="mb-4">
+                            <label className="eval-form-label">Decision: <span className="text-uppercase text-primary">{evaluationData.status}</span></label>
+                            <label className="eval-form-label mt-3">Final Remarks & Feedback</label>
+                            <textarea
+                                className="eval-textarea"
+                                placeholder="Provide detailed feedback for the students..."
+                                value={evaluationData.remarks}
+                                onChange={(e) => setEvaluationData({ ...evaluationData, remarks: e.target.value })}
+                            ></textarea>
+                        </div>
+
+                        <div className="eval-modal-footer">
+                            <button className="btn btn-light rounded-pill px-4 fw-bold" onClick={() => setEvaluatingGroup(null)}>Cancel</button>
+                            <button className="btn btn-primary rounded-pill px-4 fw-bold" onClick={handleSubmitEvaluation}>
+                                Confirm Decision
+                            </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>,
+                document.body
+            )}
         </DashboardLayout>
     );
 };

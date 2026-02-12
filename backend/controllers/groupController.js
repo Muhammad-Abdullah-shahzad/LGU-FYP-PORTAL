@@ -445,7 +445,7 @@ export const requestSupervisor = async (req, res) => {
 // @access  Private/Coordinator
 export const getAllGroups = async (req, res) => {
     try {
-        const { batch, year, status, semester, batchYear } = req.query;
+        const { batch, year, status, semester, batchYear, onlyActiveTimeline } = req.query;
 
         const filter = {};
         if (batch) filter.batch = batch;
@@ -453,6 +453,21 @@ export const getAllGroups = async (req, res) => {
         if (batchYear) filter.batchYear = parseInt(batchYear);
         if (status) filter.status = status;
         if (semester) filter.semester = parseInt(semester);
+
+        if (onlyActiveTimeline === 'true') {
+            const activeTimelines = await Timeline.find({ isActive: true });
+            if (activeTimelines.length > 0) {
+                const activeFilters = activeTimelines.map(t => ({
+                    batch: t.batch,
+                    batchYear: t.batchYear,
+                    semester: t.semester
+                }));
+                filter.$or = activeFilters;
+            } else {
+                // If no active timelines, return nothing
+                return res.json({ count: 0, groups: [] });
+            }
+        }
 
         const groups = await Group.find(filter)
             .populate('student1 student2', 'firstName lastName email registrationNumber')
@@ -499,6 +514,51 @@ export const getSupervisorGroups = async (req, res) => {
     }
 };
 
+// @desc    Get detailed group information for supervisor
+// @route   GET /api/groups/supervisor/:id/details
+// @access  Private/Supervisor
+export const getSupervisorGroupDetails = async (req, res) => {
+    try {
+        const group = await Group.findById(req.params.id)
+            .populate('student1 student2 leader', 'firstName lastName email registrationNumber')
+            .populate('supervisor', 'firstName lastName email domain designation')
+            .populate({
+                path: 'proposalPanel',
+                populate: { path: 'members', select: 'firstName lastName designation' }
+            })
+            .populate({
+                path: 'internalPanel',
+                populate: { path: 'members', select: 'firstName lastName designation' }
+            })
+            .populate({
+                path: 'srsPanel',
+                populate: { path: 'members', select: 'firstName lastName designation' }
+            })
+            .populate({
+                path: 'externalPanel',
+                populate: { path: 'members', select: 'firstName lastName designation' }
+            })
+            .populate({
+                path: 'statusHistory.changedBy',
+                select: 'firstName lastName role'
+            });
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        // Check if the requesting user is the supervisor of this group
+        if (group.supervisor._id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to view this group' });
+        }
+
+        res.json({ group });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // @desc    Get supervisor requests
 // @route   GET /api/groups/supervisor/requests
 // @access  Private/Supervisor
@@ -515,6 +575,47 @@ export const getSupervisorRequests = async (req, res) => {
             count: requests.length,
             requests
         });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Approve/Reject defense request (Supervisor)
+// @route   PUT /api/groups/:id/defense-approval
+// @access  Private/Supervisor
+export const respondToDefenseApproval = async (req, res) => {
+    try {
+        const { phase, action, remarks } = req.body; // phase: 'proposal', 'srs', 'internal', 'external'; action: 'approved', 'rejected'
+        const group = await Group.findById(req.params.id);
+
+        if (!group) return res.status(404).json({ message: 'Group not found' });
+
+        // Ensure current user is the supervisor
+        if (group.supervisor.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to approve defense for this group' });
+        }
+
+        if (phase === 'proposal') {
+            group.proposalSupervisorApproval = action;
+            group.proposalSupervisorRemarks = remarks;
+        } else if (phase === 'srs') {
+            group.srsSupervisorApproval = action;
+            group.srsSupervisorRemarks = remarks;
+        } else if (phase === 'internal') {
+            group.internalSupervisorApproval = action;
+            group.internalSupervisorRemarks = remarks;
+        } else if (phase === 'external') {
+            group.externalSupervisorApproval = action;
+            group.externalSupervisorRemarks = remarks;
+        } else {
+            return res.status(400).json({ message: 'Invalid defense phase' });
+        }
+
+        group.addStatusChange(group.status, req.user._id, `Supervisor ${action} defense request for ${phase}. Remarks: ${remarks}`);
+        await group.save();
+
+        res.json({ message: `Defense request ${action} successfully`, group });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -693,6 +794,11 @@ export const evaluateGroup = async (req, res) => {
 
         let newStatus = '';
         if (phase === 'proposal' || phase === 're-proposal') {
+            // Check supervisor approval for main defense (re-proposal doesn't need re-approval from supervisor if it's already in the loop)
+            if (phase === 'proposal' && group.proposalSupervisorApproval !== 'approved') {
+                return res.status(400).json({ message: 'Supervisor must approve the proposal for defense first' });
+            }
+
             if (status === 'approved') {
                 newStatus = 'proposal_approved';
             } else if (status === 'rejected') {
@@ -711,6 +817,10 @@ export const evaluateGroup = async (req, res) => {
             group.proposalRemarks = remarks;
             group.proposalAttempts = (group.proposalAttempts || 0) + 1;
         } else if (phase === 'srs' || phase === 're-srs') {
+            if (phase === 'srs' && group.srsSupervisorApproval !== 'approved') {
+                return res.status(400).json({ message: 'Supervisor must approve the SRS for defense first' });
+            }
+
             if (status === 'approved') {
                 newStatus = 'srs_approved';
             } else if (status === 'rejected') {
@@ -728,6 +838,10 @@ export const evaluateGroup = async (req, res) => {
             group.srsDefenseDate = new Date();
         } else if (phase === 'internal' || phase === 're-internal') {
             const validPreviousStatuses = ['proposal_approved', 'internal_minor_revision', 'internal_major_revision', 're_internal_defense', 'internal_defense', 'srs_approved', 'internal_rejected'];
+
+            if (phase === 'internal' && group.internalSupervisorApproval !== 'approved') {
+                return res.status(400).json({ message: 'Supervisor must approve the Internal defense first' });
+            }
 
             if (!validPreviousStatuses.includes(group.status) && !group.status.includes('internal') && !group.status.includes('srs')) {
                 // Relaxed check
