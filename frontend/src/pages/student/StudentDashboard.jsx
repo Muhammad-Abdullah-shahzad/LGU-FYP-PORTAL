@@ -26,6 +26,8 @@ const StudentDashboard = () => {
         defenseScheduled: false
     });
     const [invitations, setInvitations] = useState([]);
+    const [timeLeft, setTimeLeft] = useState(null);
+    const [activePhaseName, setActivePhaseName] = useState('');
     const { user } = useAuth();
     const isLeader = group && user && (group.leader?._id === user._id || group.leader === user._id);
 
@@ -67,6 +69,55 @@ const StudentDashboard = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!timeline) return;
+
+        const phases = [
+            { name: 'Group Formation', end: timeline.groupRegistrationEnd, active: timeline.groupRegistrationStatus === 'Open' },
+            { name: 'Proposal Submission', end: timeline.proposalSubmissionEnd, active: timeline.proposalSubmissionStatus === 'Open' },
+            { name: 'Proposal Defense', end: timeline.proposalDefenseEnd, active: timeline.proposalDefenseStatus === 'Open' },
+            { name: 'Re-Proposal Submission', end: timeline.reProposalSubmissionEnd, active: timeline.reProposalSubmissionStatus === 'Open' },
+            { name: 'Re-Proposal Defense', end: timeline.reProposalDefenseEnd, active: timeline.reProposalDefenseStatus === 'Open' },
+            { name: 'SRS Submission', end: timeline.srsSubmissionEnd, active: timeline.srsSubmissionStatus === 'Open' },
+            { name: 'SRS Defense', end: timeline.srsDefenseEnd, active: timeline.srsDefenseStatus === 'Open' },
+            { name: 'Re-SRS Defense', end: timeline.reSrsDefenseEnd, active: timeline.reSrsDefenseStatus === 'Open' },
+            { name: 'Internal Defense', end: timeline.internalDefenseEnd, active: timeline.internalDefenseStatus === 'Open' },
+            { name: 'Re-Internal Defense', end: timeline.reInternalDefenseEnd, active: timeline.reInternalDefenseStatus === 'Open' }
+        ];
+
+        const currentActive = phases.find(p => p.active && p.end);
+
+        if (!currentActive) {
+            setTimeLeft(null);
+            return;
+        }
+
+        setActivePhaseName(currentActive.name);
+
+        const timer = setInterval(() => {
+            const now = new Date().getTime();
+            // Set end date to 23:59:59 of that day
+            const endDate = new Date(currentActive.end);
+            endDate.setHours(23, 59, 59, 999);
+            const distance = endDate.getTime() - now;
+
+            if (distance < 0) {
+                setTimeLeft('Phase Ended');
+                clearInterval(timer);
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            setTimeLeft({ days, hours, minutes, seconds });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeline]);
 
     const handleInvitation = async (groupId, action) => {
         try {
@@ -117,6 +168,34 @@ const StudentDashboard = () => {
                 <div className="mb-4">
                     <h5 className="fw-bold text-dark mb-1">Welcome, {user?.firstName}</h5>
                     <p className="text-muted small">Tracking your FYP progress for the {timeline ? `${timeline.batch}-${timeline.batchYear}` : 'current'} session.</p>
+                </div>
+
+                {/* Countdown / Alert Section */}
+                <div className="row g-3 mb-4">
+                    {timeLeft && typeof timeLeft === 'object' && (
+                        <div className="col-12">
+                            <div className="glass-card bg-primary text-white border-0 shadow-lg d-flex align-items-center justify-content-between p-4 overflow-hidden position-relative" style={{ background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' }}>
+                                <div style={{ zIndex: 1 }}>
+                                    <h4 className="fw-bold mb-1" style={{ fontSize: '1.2rem' }}>Phase Deadline Approaching</h4>
+                                    <p className="mb-0 opacity-75 small">Finish your <strong>{activePhaseName}</strong> before the window closes.</p>
+                                </div>
+                                <div className="d-flex gap-3 text-center" style={{ zIndex: 1 }}>
+                                    {[
+                                        { val: timeLeft.days, label: 'Days' },
+                                        { val: timeLeft.hours, label: 'Hrs' },
+                                        { val: timeLeft.minutes, label: 'Min' },
+                                        { val: timeLeft.seconds, label: 'Sec' }
+                                    ].map((t, i) => (
+                                        <div key={i} className="bg-white bg-opacity-10 rounded-3 px-3 py-2" style={{ minWidth: '65px', backdropFilter: 'blur(10px)' }}>
+                                            <div className="fw-bold h4 mb-0">{t.val.toString().padStart(2, '0')}</div>
+                                            <div className="x-small text-uppercase opacity-75" style={{ fontSize: '0.55rem', fontWeight: '800' }}>{t.label}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <HiOutlineClock className="position-absolute opacity-10" size={150} style={{ right: '-20px', top: '-20px' }} />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Notifications/Invitations */}

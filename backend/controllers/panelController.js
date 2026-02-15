@@ -7,7 +7,7 @@ import User from '../models/User.js';
 // @access  Private/Coordinator
 export const createDefensePanel = async (req, res) => {
     try {
-        const { panelType, members, chairperson, academicYear, semester, batch } = req.body;
+        const { panelType, members, chairperson, academicYear, semester, batch, className, expectedTime } = req.body;
 
         // Validate members are teachers
         const teachers = await User.find({
@@ -31,6 +31,8 @@ export const createDefensePanel = async (req, res) => {
             academicYear,
             semester,
             batch,
+            className: className || '',
+            expectedTime: expectedTime || '',
             createdBy: req.user._id
         });
 
@@ -75,6 +77,58 @@ export const deleteDefensePanel = async (req, res) => {
         await DefensePanel.findByIdAndDelete(req.params.id);
 
         res.json({ message: 'Defense panel deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Update defense panel
+// @route   PUT /api/panels/:id
+// @access  Private/Coordinator
+export const updateDefensePanel = async (req, res) => {
+    try {
+        const { panelType, members, chairperson, academicYear, semester, batch, className, expectedTime } = req.body;
+
+        const panel = await DefensePanel.findById(req.params.id);
+        if (!panel) {
+            return res.status(404).json({ message: 'Panel not found' });
+        }
+
+        if (members) {
+            // Validate members are teachers
+            const teachers = await User.find({
+                _id: { $in: members },
+                role: { $in: ['supervisor', 'panel_member'] }
+            });
+
+            if (teachers.length !== members.length) {
+                return res.status(400).json({ message: 'All members must be valid teachers' });
+            }
+            panel.members = members;
+        }
+
+        if (chairperson) {
+            if (!panel.members.includes(chairperson)) {
+                return res.status(400).json({ message: 'Chairperson must be one of the panel members' });
+            }
+            panel.chairperson = chairperson;
+        }
+
+        if (panelType) panel.panelType = panelType;
+        if (academicYear) panel.academicYear = academicYear;
+        if (semester) panel.semester = semester;
+        if (batch) panel.batch = batch;
+        if (className !== undefined) panel.className = className;
+        if (expectedTime !== undefined) panel.expectedTime = expectedTime;
+
+        await panel.save();
+        await panel.populate('members chairperson', 'firstName lastName email domain designation');
+
+        res.json({
+            message: 'Defense panel updated successfully',
+            panel
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });

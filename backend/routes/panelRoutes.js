@@ -8,6 +8,7 @@ import {
     evaluateGroup,
     acceptMinorRevision,
     deleteDefensePanel,
+    updateDefensePanel,
     unassignGroupFromPanel
 } from '../controllers/panelController.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -18,6 +19,7 @@ const router = express.Router();
 router.post('/', protect, authorize('coordinator'), createDefensePanel);
 router.get('/', protect, authorize('coordinator'), getAllPanels);
 router.post('/:id/assign-group', protect, authorize('coordinator'), assignGroupToPanel);
+router.put('/:id', protect, authorize('coordinator'), updateDefensePanel);
 router.delete('/:id', protect, authorize('coordinator'), deleteDefensePanel);
 router.post('/:id/unassign-group', protect, authorize('coordinator'), unassignGroupFromPanel);
 

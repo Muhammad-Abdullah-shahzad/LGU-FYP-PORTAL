@@ -7,10 +7,12 @@ import {
     HiOutlineAcademicCap,
     HiOutlineTrash,
     HiOutlineStar,
+    HiOutlinePencilAlt,
     HiOutlineDownload,
     HiOutlineX,
     HiOutlineCheckCircle,
-    HiOutlineUser
+    HiOutlineUser,
+    HiOutlineLockClosed
 } from 'react-icons/hi';
 import './CoordinatorPanels.css';
 
@@ -32,7 +34,9 @@ const CoordinatorPanels = () => {
         chairperson: '',
         academicYear: (new Date().getFullYear() - 3).toString(),
         batch: 'Fall',
-        semester: 7
+        semester: 7,
+        className: '',
+        expectedTime: ''
     });
 
     const [assignmentData, setAssignmentData] = useState({
@@ -69,19 +73,30 @@ const CoordinatorPanels = () => {
 
         setSubmitting(true);
         try {
-            const res = await api.post('/panels', formData);
-            setPanels([res.data.panel, ...panels]);
+            if (selectedPanel && showCreateModal) {
+                // Update mode
+                const res = await api.put(`/panels/${selectedPanel._id}`, formData);
+                setPanels(panels.map(p => p._id === selectedPanel._id ? res.data.panel : p));
+                alert('Panel updated successfully');
+            } else {
+                // Create mode
+                const res = await api.post('/panels', formData);
+                setPanels([res.data.panel, ...panels]);
+            }
             setShowCreateModal(false);
+            setSelectedPanel(null);
             setFormData({
                 panelType: 'proposal',
                 members: [],
                 chairperson: '',
                 academicYear: (new Date().getFullYear() - 3).toString(),
                 batch: 'Fall',
-                semester: 7
+                semester: 7,
+                className: '',
+                expectedTime: ''
             });
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to create panel');
+            alert(err.response?.data?.message || 'Failed to process panel');
         } finally {
             setSubmitting(false);
         }
@@ -200,6 +215,13 @@ const CoordinatorPanels = () => {
                                         </span>
                                     </div>
 
+                                    {panel.className || panel.expectedTime ? (
+                                        <div className="px-3 py-1 bg-light border-bottom d-flex justify-content-between align-items-center">
+                                            <span className="small fw-bold text-primary">{panel.className || 'No Class'}</span>
+                                            <span className="small text-muted">{panel.expectedTime || 'No Time'}</span>
+                                        </div>
+                                    ) : null}
+
                                     <div className="panel-card-body">
                                         <label className="modal-label-minimal">Committee Members</label>
                                         <div className="member-grid-minimal">
@@ -231,6 +253,22 @@ const CoordinatorPanels = () => {
                                                 <button className="btn-icon-circle" title="Export CSV" onClick={() => exportToCSV(panel)}>
                                                     <HiOutlineDownload size={14} />
                                                 </button>
+                                                <button className="btn-icon-circle" title="Edit Panel" onClick={() => {
+                                                    setFormData({
+                                                        panelType: panel.panelType,
+                                                        members: panel.members.map(m => m._id),
+                                                        chairperson: panel.chairperson._id,
+                                                        academicYear: panel.academicYear,
+                                                        batch: panel.batch,
+                                                        semester: panel.semester,
+                                                        className: panel.className || '',
+                                                        expectedTime: panel.expectedTime || ''
+                                                    });
+                                                    setSelectedPanel(panel);
+                                                    setShowCreateModal(true);
+                                                }}>
+                                                    <HiOutlinePencilAlt size={14} />
+                                                </button>
                                                 <button className="btn-icon-circle delete" title="Delete Committee" onClick={() => handleDeletePanel(panel._id)}>
                                                     <HiOutlineTrash size={14} />
                                                 </button>
@@ -249,8 +287,21 @@ const CoordinatorPanels = () => {
                 <div className="modal-minimal-overlay">
                     <div className="modal-content-minimal">
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5 className="fw-bold m-0">Establish Defense Panel</h5>
-                            <button className="btn p-0 text-muted" onClick={() => setShowCreateModal(false)}><HiOutlineX size={20} /></button>
+                            <h5 className="fw-bold m-0">{selectedPanel ? 'Update Defense Panel' : 'Establish Defense Panel'}</h5>
+                            <button className="btn p-0 text-muted" onClick={() => {
+                                setShowCreateModal(false);
+                                setSelectedPanel(null);
+                                setFormData({
+                                    panelType: 'proposal',
+                                    members: [],
+                                    chairperson: '',
+                                    academicYear: (new Date().getFullYear() - 3).toString(),
+                                    batch: 'Fall',
+                                    semester: 7,
+                                    className: '',
+                                    expectedTime: ''
+                                });
+                            }}><HiOutlineX size={20} /></button>
                         </div>
                         <form onSubmit={handleCreatePanel}>
                             <div className="row g-2">
@@ -280,6 +331,14 @@ const CoordinatorPanels = () => {
                                         <option value={7}>Semester 7</option>
                                         <option value={8}>Semester 8</option>
                                     </select>
+                                </div>
+                                <div className="col-6">
+                                    <label className="modal-label-minimal">Class Name (Optional)</label>
+                                    <input type="text" className="input-minimal" placeholder="e.g. BCS-8A" value={formData.className} onChange={(e) => setFormData({ ...formData, className: e.target.value })} />
+                                </div>
+                                <div className="col-6">
+                                    <label className="modal-label-minimal">Expected Time (Optional)</label>
+                                    <input type="text" className="input-minimal" placeholder="e.g. 10:00 AM" value={formData.expectedTime} onChange={(e) => setFormData({ ...formData, expectedTime: e.target.value })} />
                                 </div>
                             </div>
 
@@ -311,9 +370,22 @@ const CoordinatorPanels = () => {
                             )}
 
                             <div className="d-flex gap-2 justify-content-end mt-4">
-                                <button type="button" className="btn btn-light rounded-pill px-4 fw-bold small" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-light rounded-pill px-4 fw-bold small" onClick={() => {
+                                    setShowCreateModal(false);
+                                    setSelectedPanel(null);
+                                    setFormData({
+                                        panelType: 'proposal',
+                                        members: [],
+                                        chairperson: '',
+                                        academicYear: (new Date().getFullYear() - 3).toString(),
+                                        batch: 'Fall',
+                                        semester: 7,
+                                        className: '',
+                                        expectedTime: ''
+                                    });
+                                }}>Cancel</button>
                                 <button type="submit" className="btn-assemble-minimal px-4" disabled={submitting || formData.members.length < 1 || !formData.chairperson}>
-                                    {submitting ? 'Creating...' : 'Establish Committee'}
+                                    {submitting ? 'Creating...' : (selectedPanel ? 'Update Committee' : 'Establish Committee')}
                                 </button>
                             </div>
                         </form>
@@ -332,18 +404,48 @@ const CoordinatorPanels = () => {
                         <form onSubmit={handleAssignGroup}>
                             <p className="text-muted small">Routing a group to <strong>{selectedPanel.panelName}</strong> committee for {selectedPanel.panelType} verification.</p>
                             <label className="modal-label-minimal">Select Eligible Group</label>
-                            <select className="input-minimal" value={assignmentData.groupId} onChange={(e) => setAssignmentData({ groupId: e.target.value })} required>
-                                <option value="">Select available FYP group...</option>
-                                {getAvailableGroups(selectedPanel.panelType).map(group => (
-                                    <option key={group._id} value={group._id}>{group.groupName} - {group.projectTitle}</option>
-                                ))}
-                            </select>
+                            <div className="group-selection-list mb-3">
+                                {getAvailableGroups(selectedPanel.panelType).length > 0 ? (
+                                    getAvailableGroups(selectedPanel.panelType).map(group => {
+                                        const isConflict = selectedPanel.members.some(m =>
+                                            (m._id || m) === (group.supervisor?._id || group.supervisor)
+                                        );
 
-                            {getAvailableGroups(selectedPanel.panelType).length === 0 && (
-                                <div className="p-3 bg-light rounded text-center mb-3">
-                                    <span className="text-muted small italic">No unassigned groups found for this defense phase.</span>
-                                </div>
-                            )}
+                                        return (
+                                            <div
+                                                key={group._id}
+                                                className={`group-selection-item ${assignmentData.groupId === group._id ? 'selected' : ''} ${isConflict ? 'has-conflict' : ''}`}
+                                                onClick={() => !isConflict && setAssignmentData({ groupId: group._id })}
+                                            >
+                                                <div className="d-flex align-items-center justify-content-between w-100">
+                                                    <div className="flex-grow-1">
+                                                        <div className="fw-bold small">{group.groupName}</div>
+                                                        <div className="text-muted" style={{ fontSize: '0.65rem' }}>{group.projectTitle}</div>
+                                                        {isConflict && (
+                                                            <div className="text-danger fw-bold mt-1" style={{ fontSize: '0.6rem' }}>
+                                                                SUPERVISOR CONFLICT: {group.supervisor?.firstName} {group.supervisor?.lastName} is on this panel.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="ms-2">
+                                                        {isConflict ? (
+                                                            <HiOutlineLockClosed className="text-danger" size={18} />
+                                                        ) : assignmentData.groupId === group._id ? (
+                                                            <HiOutlineCheckCircle className="text-primary" size={18} />
+                                                        ) : (
+                                                            <div className="circle-placeholder" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="p-3 bg-light rounded text-center mb-3">
+                                        <span className="text-muted small italic">No unassigned groups found for this defense phase.</span>
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="d-flex gap-2 justify-content-end mt-4">
                                 <button type="button" className="btn btn-light rounded-pill px-4 fw-bold small" onClick={() => setShowAssignModal(false)}>Cancel</button>

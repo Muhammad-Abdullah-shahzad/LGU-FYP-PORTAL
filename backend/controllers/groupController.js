@@ -445,7 +445,7 @@ export const requestSupervisor = async (req, res) => {
 // @access  Private/Coordinator
 export const getAllGroups = async (req, res) => {
     try {
-        const { batch, year, status, semester, batchYear, onlyActiveTimeline } = req.query;
+        const { batch, year, status, semester, batchYear, onlyActiveTimeline, supervisorStatus } = req.query;
 
         const filter = {};
         if (batch) filter.batch = batch;
@@ -453,6 +453,7 @@ export const getAllGroups = async (req, res) => {
         if (batchYear) filter.batchYear = parseInt(batchYear);
         if (status) filter.status = status;
         if (semester) filter.semester = parseInt(semester);
+        if (supervisorStatus) filter.supervisorStatus = supervisorStatus;
 
         if (onlyActiveTimeline === 'true') {
             const activeTimelines = await Timeline.find({ isActive: true });

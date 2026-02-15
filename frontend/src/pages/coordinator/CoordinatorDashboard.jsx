@@ -18,6 +18,7 @@ const CoordinatorDashboard = () => {
         groups: 0,
         activeTimelines: 0
     });
+    const [pendingGroups, setPendingGroups] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -26,10 +27,11 @@ const CoordinatorDashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const [usersRes, groupsRes, timelinesRes] = await Promise.all([
+            const [usersRes, groupsRes, timelinesRes, pendingGroupsRes] = await Promise.all([
                 api.get('/users'),
                 api.get('/groups'),
-                api.get('/timeline')
+                api.get('/timeline'),
+                api.get('/groups?supervisorStatus=pending')
             ]);
 
             const users = usersRes.data.users || [];
@@ -39,6 +41,7 @@ const CoordinatorDashboard = () => {
                 groups: groupsRes.data.count || 0,
                 activeTimelines: timelinesRes.data.timelines?.filter(t => t.isActive).length || 0
             });
+            setPendingGroups(pendingGroupsRes.data.groups || []);
         } catch (err) {
             console.error('Error fetching stats:', err);
         } finally {
@@ -99,6 +102,77 @@ const CoordinatorDashboard = () => {
                         and enforce academic deadlines via the timeline module.
                     </p>
                 </div>
+
+                {/* Pending Supervisor Responses Section */}
+                {pendingGroups.length > 0 && (
+                    <div className="mb-4">
+                        <div className="d-flex align-items-center justify-content-between mb-3">
+                            <h6 className="section-title m-0" style={{ fontSize: '0.85rem', fontWeight: '700', color: '#1e293b' }}>
+                                Pending Supervisor Responses
+                            </h6>
+                            <span className="badge bg-warning text-dark" style={{ fontSize: '0.65rem' }}>
+                                {pendingGroups.length} ACTION{pendingGroups.length > 1 ? 'S' : ''} REQUIRED
+                            </span>
+                        </div>
+                        <div className="bg-white border rounded shadow-sm overflow-hidden">
+                            <div className="table-responsive">
+                                <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
+                                    <thead className="bg-light">
+                                        <tr>
+                                            <th className="px-3 py-2 text-muted border-0">GROUP</th>
+                                            <th className="px-3 py-2 text-muted border-0">SUPERVISOR</th>
+                                            <th className="px-3 py-2 text-muted border-0">REQUEST DATE</th>
+                                            <th className="px-3 py-2 text-muted border-0 text-end">ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pendingGroups.map(group => (
+                                            <tr key={group._id}>
+                                                <td className="px-3 py-2">
+                                                    <div className="fw-bold text-dark">{group.groupName}</div>
+                                                    <div className="text-muted small text-truncate" style={{ maxWidth: '200px' }}>{group.projectTitle}</div>
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    <div className="d-flex align-items-center">
+                                                        <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '24px', height: '24px', fontSize: '0.6rem', fontWeight: 'bold' }}>
+                                                            {group.supervisor?.firstName?.[0]}{group.supervisor?.lastName?.[0]}
+                                                        </div>
+                                                        <div>
+                                                            <div className="fw-semibold">{group.supervisor?.firstName} {group.supervisor?.lastName}</div>
+                                                            <div className="text-muted" style={{ fontSize: '0.65rem' }}>{group.supervisor?.email}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-3 py-2 text-muted">
+                                                    {group.supervisorRequestDate ? new Date(group.supervisorRequestDate).toLocaleDateString() : 'N/A'}
+                                                </td>
+                                                <td className="px-3 py-2 text-end">
+                                                    <div className="d-flex justify-content-end gap-2">
+                                                        <a
+                                                            href={`mailto:${group.supervisor?.email}?subject=Pending FYP Group Request: ${group.groupName}&body=Dear ${group.supervisor?.firstName}, You have a pending group project request for "${group.projectTitle}". Please respond to it on the FYP Portal.`}
+                                                            className="btn btn-sm btn-outline-secondary"
+                                                            style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem' }}
+                                                            title="Remind via Email"
+                                                        >
+                                                            Remind
+                                                        </a>
+                                                        <button
+                                                            className="btn btn-sm btn-outline-primary"
+                                                            style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem' }}
+                                                            onClick={() => window.location.href = `/coordinator/groups?supervisorStatus=pending`}
+                                                        >
+                                                            Details
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Management Grid */}
                 <div>

@@ -11,11 +11,25 @@ const CoordinatorGroups = () => {
         batch: '',
         batchYear: '',
         semester: '',
-        status: ''
+        status: '',
+        supervisorStatus: ''
     });
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 5 }, (_, i) => currentYear - i + 1);
+
+    useEffect(() => {
+        // Initialize filters from URL search params
+        const params = new URLSearchParams(window.location.search);
+        const urlFilters = {
+            batch: params.get('batch') || '',
+            batchYear: params.get('batchYear') || '',
+            semester: params.get('semester') || '',
+            status: params.get('status') || '',
+            supervisorStatus: params.get('supervisorStatus') || ''
+        };
+        setFilters(urlFilters);
+    }, []);
 
     useEffect(() => {
         fetchGroups();
@@ -86,6 +100,15 @@ const CoordinatorGroups = () => {
                             </select>
                         </div>
                         <div>
+                            <label className="filter-label-minimal">Supervisor Approval</label>
+                            <select className="filter-select-minimal" value={filters.supervisorStatus || ''} onChange={(e) => setFilters({ ...filters, supervisorStatus: e.target.value })}>
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending Response</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div>
                             <button className="btn-filter-minimal w-100 d-flex align-items-center justify-content-center gap-2" onClick={fetchGroups}>
                                 <HiOutlineSearch size={14} /> Refresh
                             </button>
@@ -126,11 +149,19 @@ const CoordinatorGroups = () => {
                                             </td>
                                             <td>
                                                 {group.supervisor ? (
-                                                    <div className="person-tag-minimal">
-                                                        <div className="person-initials-minimal">
-                                                            {group.supervisor.firstName[0]}{group.supervisor.lastName[0]}
+                                                    <div className="person-tag-minimal flex-column align-items-start">
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <div className="person-initials-minimal">
+                                                                {group.supervisor.firstName[0]}{group.supervisor.lastName[0]}
+                                                            </div>
+                                                            <span className="fw-semibold" style={{ fontSize: '0.75rem' }}>{group.supervisor.firstName} {group.supervisor.lastName}</span>
                                                         </div>
-                                                        <span className="fw-semibold" style={{ fontSize: '0.75rem' }}>{group.supervisor.firstName} {group.supervisor.lastName}</span>
+                                                        {group.supervisorStatus === 'pending' && (
+                                                            <span className="badge bg-warning text-dark mt-1" style={{ fontSize: '0.55rem', padding: '0.15rem 0.35rem' }}>PENDING RESPONSE</span>
+                                                        )}
+                                                        {group.supervisorStatus === 'rejected' && (
+                                                            <span className="badge bg-danger mt-1" style={{ fontSize: '0.55rem', padding: '0.15rem 0.35rem' }}>REJECTED</span>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <span className="text-muted small opacity-50 italic">TBD</span>

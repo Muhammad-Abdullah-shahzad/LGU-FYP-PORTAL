@@ -38,6 +38,14 @@ const defensePanelSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    className: {
+        type: String,
+        default: ''
+    },
+    expectedTime: {
+        type: String,
+        default: ''
+    },
     isActive: {
         type: Boolean,
         default: true
