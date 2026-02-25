@@ -108,7 +108,7 @@ export const createGroup = async (req, res) => {
             registrationDeadline: timeline.groupRegistrationEnd
         });
 
-        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation areaOfExpertise');
 
         res.status(201).json({
             message: 'Group created successfully',
@@ -136,7 +136,7 @@ export const getMyGroup = async (req, res) => {
             ]
         })
             .populate('student1 student2 leader', 'firstName lastName email registrationNumber')
-            .populate('supervisor', 'firstName lastName email domain designation')
+            .populate('supervisor', 'firstName lastName email domain designation areaOfExpertise')
             .populate('proposalPanel internalPanel srsPanel externalPanel');
 
         if (!group) {
@@ -232,7 +232,7 @@ export const submitProposal = async (req, res) => {
 
         await group.save();
 
-        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation areaOfExpertise');
         res.json({
             message: 'Proposal submitted successfully',
             group
@@ -287,7 +287,7 @@ export const updateGroupDetails = async (req, res) => {
 
         await group.save();
 
-        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation areaOfExpertise');
         res.json({
             message: 'Project details updated successfully',
             group
@@ -429,7 +429,7 @@ export const requestSupervisor = async (req, res) => {
         group.addStatusChange(group.status, req.user._id, `Supervisor request sent to ${supervisor.fullName}`);
 
         await group.save();
-        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation');
+        await group.populate('student1 student2 leader supervisor', 'firstName lastName email registrationNumber domain designation areaOfExpertise');
         res.json({
             message: 'Supervisor request sent successfully',
             group
@@ -522,7 +522,7 @@ export const getSupervisorGroupDetails = async (req, res) => {
     try {
         const group = await Group.findById(req.params.id)
             .populate('student1 student2 leader', 'firstName lastName email registrationNumber')
-            .populate('supervisor', 'firstName lastName email domain designation')
+            .populate('supervisor', 'firstName lastName email domain designation areaOfExpertise')
             .populate({
                 path: 'proposalPanel',
                 populate: { path: 'members', select: 'firstName lastName designation' }

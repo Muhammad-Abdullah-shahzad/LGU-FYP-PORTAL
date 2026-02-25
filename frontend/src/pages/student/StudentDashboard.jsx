@@ -297,6 +297,13 @@ const StudentDashboard = () => {
                                     <div className="info-item">
                                         <label>Lead Supervisor</label>
                                         <p>{group.supervisor ? `${group.supervisor.firstName} ${group.supervisor.lastName}` : 'TBD'}</p>
+                                        {group.supervisor && (group.supervisor.domain?.length > 0 || group.supervisor.areaOfExpertise) && (
+                                            <div className="text-muted" style={{ fontSize: '0.6rem', marginTop: '-8px', lineHeight: '1.2' }}>
+                                                {group.supervisor.domain && group.supervisor.domain.length > 0
+                                                    ? (Array.isArray(group.supervisor.domain) ? group.supervisor.domain.join(', ') : group.supervisor.domain)
+                                                    : group.supervisor.areaOfExpertise}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="info-item">
                                         <label>Management Role</label>

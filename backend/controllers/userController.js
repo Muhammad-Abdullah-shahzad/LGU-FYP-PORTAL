@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import XLSX from 'xlsx';
 
 // @desc    Get all users (Coordinator)
 // @route   GET /api/users
@@ -147,7 +148,167 @@ export const deleteUser = async (req, res) => {
     }
 };
 
+// @desc    Upload supervisors from Excel
+// @route   POST /api/users/upload-supervisors
+// @access  Private/Coordinator
+export const uploadSupervisors = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload an excel file' });
+        }
+
+        // Parse column mapping from frontend
+        let mapping = {};
+        if (req.body.mapping) {
+            try { mapping = JSON.parse(req.body.mapping); } catch { mapping = {}; }
+        }
+
+        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(worksheet);
+
+        if (data.length === 0) {
+            return res.status(400).json({ message: 'Excel file is empty' });
+        }
+
+        const stats = {
+            created: 0,
+            skipped: 0,
+            alreadyExists: 0,
+            missingFields: 0,
+            errors: []
+        };
+
+        // Debug: log mapping and first row keys
+        console.log('[Upload] Mapping received:', JSON.stringify(mapping));
+        if (data.length > 0) {
+            console.log('[Upload] First row keys:', Object.keys(data[0]));
+            console.log('[Upload] First row sample:', JSON.stringify(data[0]));
+        }
+
+        const defaultPassword = 'Lgu12345';
+
+        // Get the last faculty ID to increment
+        const lastFaculty = await User.findOne({
+            role: { $in: ['supervisor', 'panel_member'] },
+            registrationNumber: { $regex: /^LGU-FAC-/ }
+        }).sort({ registrationNumber: -1 });
+
+        let nextIdNumber = 1;
+        if (lastFaculty && lastFaculty.registrationNumber) {
+            const match = lastFaculty.registrationNumber.match(/LGU-FAC-(\d+)/);
+            if (match) nextIdNumber = parseInt(match[1]) + 1;
+        }
+
+        // Helper: build a trimmed-key lookup from the row so trailing/leading spaces in Excel headers don't break matching
+        const buildTrimmedRow = (row) => {
+            const trimmed = {};
+            for (const key of Object.keys(row)) {
+                trimmed[key.trim()] = row[key];
+            }
+            return trimmed;
+        };
+
+        // Helper: get value from row using the mapped column name
+        const get = (trimmedRow, key, fallbacks = []) => {
+            // Try mapped column name first
+            if (mapping[key]) {
+                const mappedCol = mapping[key].trim();
+                if (trimmedRow[mappedCol] !== undefined) return String(trimmedRow[mappedCol]).trim();
+            }
+            // Try fallbacks
+            for (const fb of fallbacks) {
+                const fbTrimmed = fb.trim();
+                if (trimmedRow[fbTrimmed] !== undefined) return String(trimmedRow[fbTrimmed]).trim();
+            }
+            return '';
+        };
+
+        for (const row of data) {
+            try {
+                const trimmedRow = buildTrimmedRow(row);
+                const fullName = get(trimmedRow, 'fullName', ['Full Name', 'Name', 'fullname']);
+                const email = get(trimmedRow, 'email', ['Email', 'email']);
+                const designation = get(trimmedRow, 'designation', ['Designation']);
+                const phoneNumber = get(trimmedRow, 'phoneNumber', ['Phone #', 'Phone Number', 'phone']);
+                const officeAddress = get(trimmedRow, 'officeAddress', ['Office Address', 'office_address']);
+                const areaOfExpertise = get(trimmedRow, 'areaOfExpertise', ['Area of Expertise / Research Interests', 'Specialization']);
+                const domainStr = get(trimmedRow, 'domain', ['Domain', 'domain']);
+                const preferredProjectNature = get(trimmedRow, 'preferredProjectNature', ['Preferred Project Nature']);
+                const specificTools = get(trimmedRow, 'specificTools', ['Any specific tools/technologies you want students to use in their projects?']);
+                const interestedProjectTypes = get(trimmedRow, 'interestedProjectTypes', ['Types of projects you would be interested in supervising']);
+
+                if (!email || !fullName) {
+                    stats.skipped++;
+                    stats.missingFields++;
+                    console.log('[Upload] Skipped (missing fields):', { fullName, email, rowKeys: Object.keys(row) });
+                    continue;
+                }
+
+                // Parse domain — accept any value, split by comma
+                let domain = [];
+                if (domainStr) {
+                    domain = domainStr.split(',').map(d => d.trim()).filter(Boolean);
+                }
+                // If no domain column mapped, use areaOfExpertise split by comma as domain
+                if (domain.length === 0 && areaOfExpertise) {
+                    domain = areaOfExpertise.split(',').map(d => d.trim()).filter(Boolean);
+                }
+
+                // Skip duplicates
+                const userExists = await User.findOne({ email: email.toLowerCase() });
+                if (userExists) {
+                    stats.skipped++;
+                    stats.alreadyExists++;
+                    continue;
+                }
+
+                // Split full name
+                const nameParts = fullName.trim().split(' ');
+                const firstName = nameParts[0];
+                const lastName = nameParts.slice(1).join(' ') || '.';
+
+                // Auto-assign faculty ID
+                const registrationNumber = `LGU-FAC-${String(nextIdNumber).padStart(3, '0')}`;
+
+                await User.create({
+                    email: email.toLowerCase(),
+                    password: defaultPassword,
+                    role: 'supervisor',
+                    firstName,
+                    lastName,
+                    registrationNumber,
+                    designation,
+                    phoneNumber,
+                    officeAddress,
+                    areaOfExpertise,
+                    domain,
+                    preferredProjectNature,
+                    specificTools,
+                    interestedProjectTypes
+                });
+
+                nextIdNumber++;
+                stats.created++;
+            } catch (err) {
+                console.error(`Error creating user ${row['Email']}:`, err);
+                stats.errors.push({ email: row['Email'], error: err.message });
+            }
+        }
+
+        res.status(200).json({
+            message: `Bulk upload completed. Created: ${stats.created}, Skipped: ${stats.skipped} (${stats.alreadyExists} already existed, ${stats.missingFields} missing fields)`,
+            stats
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // @desc    Get teachers by domain
+
 // @route   GET /api/users/teachers/by-domain/:domain
 // @access  Private/Student
 export const getTeachersByDomain = async (req, res) => {
@@ -159,7 +320,7 @@ export const getTeachersByDomain = async (req, res) => {
             domain: domain,
             isActive: true
         })
-            .select('firstName lastName email domain designation')
+            .select('firstName lastName email domain designation areaOfExpertise phoneNumber officeAddress')
             .sort({ firstName: 1 });
 
         res.json({
@@ -181,7 +342,7 @@ export const getAllSupervisors = async (req, res) => {
             role: 'supervisor',
             isActive: true
         })
-            .select('firstName lastName email domain designation')
+            .select('firstName lastName email domain designation areaOfExpertise phoneNumber officeAddress')
             .sort({ firstName: 1 });
 
         res.json({

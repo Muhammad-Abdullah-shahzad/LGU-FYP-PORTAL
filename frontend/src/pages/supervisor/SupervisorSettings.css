@@ -1,0 +1,226 @@
+.settings-container {
+    padding: 1rem 0;
+}
+
+/* Profile Card */
+.settings-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid #e8ecf1;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+}
+
+.profile-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+.profile-info h5 {
+    font-size: 0.95rem;
+}
+
+/* Settings Card */
+.settings-card {
+    background: #fff;
+    border: 1px solid #e8ecf1;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4e73df10 0%, #4e73df20 100%);
+    color: #4e73df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.settings-card-body {
+    padding: 1.5rem;
+}
+
+/* Alert styles */
+.alert-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+}
+
+.alert-error {
+    background: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+}
+
+.alert-success-custom {
+    background: #f0fff4;
+    color: #276749;
+    border: 1px solid #c6f6d5;
+}
+
+/* Form Fields */
+.password-field-group {
+    margin-bottom: 1.1rem;
+}
+
+.field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.2px;
+}
+
+.label-icon {
+    color: #a0aec0;
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input {
+    width: 100%;
+    padding: 0.65rem 2.5rem 0.65rem 0.85rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #2d3748;
+    background: #fafbfc;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.password-input:focus {
+    border-color: #4e73df;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.08);
+}
+
+.password-input::placeholder {
+    color: #cbd5e0;
+    font-size: 0.78rem;
+}
+
+.visibility-toggle {
+    position: absolute;
+    right: 0.65rem;
+    background: none;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.visibility-toggle:hover {
+    color: #4e73df;
+}
+
+/* Divider */
+.password-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.password-divider::before,
+.password-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.password-divider span {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+/* Submit Button */
+.change-password-btn {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.25s ease;
+}
+
+.change-password-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(78, 115, 223, 0.3);
+}
+
+.change-password-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Footer */
+.settings-card-footer {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid #f0f2f5;
+    background: #fafbfc;
+    font-size: 0.68rem;
+    color: #a0aec0;
+    line-height: 1.4;
+}
+
+.settings-card-footer svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}

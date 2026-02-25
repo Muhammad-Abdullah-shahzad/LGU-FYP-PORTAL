@@ -345,7 +345,7 @@ const StudentProposal = () => {
                                         <div className="supervisor-card shadow-none">
                                             <label className="modern-label">Supervisor</label>
                                             <select
-                                                className="modern-select mb-3"
+                                                className="modern-select mb-2"
                                                 value={formData.supervisorId}
                                                 onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
                                                 required
@@ -354,10 +354,32 @@ const StudentProposal = () => {
                                                 <option value="">Choose Advisor...</option>
                                                 {supervisors.map(s => (
                                                     <option key={s._id} value={s._id}>
-                                                        {s.firstName} {s.lastName} — {s.domain}
+                                                        {s.firstName} {s.lastName}{(() => { const spec = s.domain && s.domain.length > 0 ? (Array.isArray(s.domain) ? s.domain.join(', ') : s.domain) : s.areaOfExpertise; return spec ? ` — ${spec}` : ''; })()}
                                                     </option>
                                                 ))}
                                             </select>
+
+                                            {formData.supervisorId && supervisors.find(s => s._id === formData.supervisorId) && (
+                                                <div className="mb-3 p-2 rounded-3" style={{ background: '#f8f9fa', borderLeft: '3px solid #4e73df' }}>
+                                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                                        <span className="text-uppercase fw-bold" style={{ fontSize: '0.55rem', color: '#4e73df', letterSpacing: '0.5px' }}>Specialization</span>
+                                                    </div>
+                                                    <div className="fw-semibold" style={{ fontSize: '0.7rem', color: '#2d3748' }}>
+                                                        {(() => {
+                                                            const s = supervisors.find(s => s._id === formData.supervisorId);
+                                                            return s.domain && s.domain.length > 0 ? s.domain.join(', ') : s.areaOfExpertise;
+                                                        })()}
+                                                    </div>
+                                                    {(() => {
+                                                        const s = supervisors.find(s => s._id === formData.supervisorId);
+                                                        return s.officeAddress && (
+                                                            <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '4px' }}>
+                                                                <span className="fw-bold">Office:</span> {s.officeAddress}
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
 
                                             <div className="d-flex align-items-center justify-content-between">
                                                 <span className="text-muted" style={{ fontSize: '0.65rem' }}>Current Status:</span>

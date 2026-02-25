@@ -56,11 +56,32 @@ const userSchema = new mongoose.Schema({
         type: Number
     },
     // For supervisors and panel members
-    domain: [{
-        type: String,
-        enum: ['AI', 'ML', 'Deep Learning', 'CV', 'NLP', 'LLM', 'Web Development', 'Mobile Development', 'Desktop', 'AR/VR', 'Game', 'Software Engineering', 'Artificial Intelligence', 'Data Science', 'Cybersecurity']
-    }],
+    domain: [{ type: String, trim: true }],
     designation: {
+        type: String,
+        trim: true
+    },
+    phoneNumber: {
+        type: String,
+        trim: true
+    },
+    officeAddress: {
+        type: String,
+        trim: true
+    },
+    areaOfExpertise: {
+        type: String,
+        trim: true
+    },
+    preferredProjectNature: {
+        type: String,
+        trim: true
+    },
+    specificTools: {
+        type: String,
+        trim: true
+    },
+    interestedProjectTypes: {
         type: String,
         trim: true
     },
