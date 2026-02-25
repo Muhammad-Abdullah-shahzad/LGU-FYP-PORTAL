@@ -320,3 +320,31 @@
         transform: translateY(0);
     }
 }
+
+.search-results-list {
+    max-height: 200px;
+    z-index: 100;
+}
+
+.search-result-item {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-result-item:hover {
+    background: #f8fafc;
+}
+
+.selected-partner-badge {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

@@ -72,13 +72,13 @@ const SupervisorSettings = () => {
                     <div className="col-lg-7">
                         {/* Profile Info Card */}
                         <div className="settings-profile-card mb-4">
-                            <div className="profile-avatar">
+                            <div className="profile-avatar shadow-sm">
                                 {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                             </div>
                             <div className="profile-info">
                                 <h5 className="fw-bold mb-0">{user?.firstName} {user?.lastName}</h5>
-                                <p className="text-muted mb-0" style={{ fontSize: '0.8rem' }}>{user?.email}</p>
-                                <span className="badge rounded-pill mt-2 px-3 py-1" style={{ fontSize: '0.65rem', fontWeight: '600', background: '#e8f0fe', color: '#4e73df' }}>
+                                <p className="text-muted mb-0 small">{user?.email}</p>
+                                <span className="badge rounded-pill mt-2 px-3 py-1 supervisor-role-badge">
                                     {user?.role?.replace('_', ' ').toUpperCase()}
                                 </span>
                             </div>

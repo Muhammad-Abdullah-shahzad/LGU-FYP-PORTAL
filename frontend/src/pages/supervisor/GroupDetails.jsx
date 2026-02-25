@@ -58,6 +58,24 @@ const GroupDetails = () => {
         return 'primary';
     };
 
+    const renderMarks = (phaseMarks) => {
+        if (!phaseMarks || phaseMarks.total === 0) return null;
+        return (
+            <div className="marks-display-mini mt-3 p-3 bg-white border border-primary border-opacity-25 rounded-3 shadow-sm">
+                <div className="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                    <span className="fw-bold text-dark small">Performance Metrics</span>
+                    <span className="badge bg-primary rounded-pill px-3">{phaseMarks.total} / 20</span>
+                </div>
+                <div className="row g-2 text-muted" style={{ fontSize: '0.7rem' }}>
+                    <div className="col-6"><span className="fw-bold text-secondary">Understanding:</span> {phaseMarks.understanding}/5</div>
+                    <div className="col-6"><span className="fw-bold text-secondary">Design:</span> {phaseMarks.design}/5</div>
+                    <div className="col-6"><span className="fw-bold text-secondary">Originality:</span> {phaseMarks.originality}/5</div>
+                    <div className="col-6"><span className="fw-bold text-secondary">Presentation:</span> {phaseMarks.presentation}/5</div>
+                </div>
+            </div>
+        );
+    };
+
     const [approvalRemarks, setApprovalRemarks] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -114,12 +132,11 @@ const GroupDetails = () => {
             <div className="approval-form mt-3 border-top pt-3">
                 <label className="remarks-label">Supervisor Approval for {phase.toUpperCase()} Defense</label>
                 <textarea
-                    className="form-control mb-2"
+                    className="approval-textarea"
                     placeholder="Enter approval/rejection remarks..."
                     value={approvalRemarks}
                     onChange={(e) => setApprovalRemarks(e.target.value)}
                     rows="2"
-                    style={{ fontSize: '0.85rem' }}
                 />
                 <div className="d-flex gap-2">
                     <button
@@ -145,27 +162,27 @@ const GroupDetails = () => {
         <DashboardLayout title="Group Details">
             <div className="group-details-container">
                 {/* Header */}
-                <div className="details-header">
+                <div className="details-header shadow-sm">
                     <button className="back-btn" onClick={() => navigate('/supervisor/groups')}>
-                        <HiOutlineArrowLeft size={18} />
+                        <HiOutlineArrowLeft size={16} />
                         <span>Back to Groups</span>
                     </button>
                     <div className="header-info">
                         <div className="group-id-badge">{group.groupName}</div>
                         <h2 className="project-title">{group.projectTitle}</h2>
                         <div className="meta-info">
-                            <span className="meta-item">
+                            <div className="meta-item">
                                 <HiOutlineUserGroup size={16} />
-                                {group.batch} {group.year}
-                            </span>
-                            <span className="meta-item">
+                                <span>{group.batch} {group.year}</span>
+                            </div>
+                            <div className="meta-item">
                                 <HiOutlineCalendar size={16} />
-                                Registered: {formatDate(group.createdAt)}
-                            </span>
-                            <span className={`status-pill status-${getStatusColor(group.status)}`}>
+                                <span>Registered: {formatDate(group.createdAt)}</span>
+                            </div>
+                            <div className={`status-pill status-${getStatusColor(group.status)}`}>
                                 {getStatusIcon(group.status)}
-                                {group.status.replace(/_/g, ' ').toUpperCase()}
-                            </span>
+                                <span className="ms-1">{group.status.replace(/_/g, ' ').toUpperCase()}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -181,30 +198,32 @@ const GroupDetails = () => {
                                 <h3>Team Members</h3>
                             </div>
                             <div className="card-body">
-                                <div className="member-item">
-                                    <div className="member-avatar">{group.student1?.firstName?.charAt(0)}{group.student1?.lastName?.charAt(0)}</div>
-                                    <div className="member-info">
-                                        <div className="member-name">
-                                            {group.student1?.firstName} {group.student1?.lastName}
-                                            {group.leader?._id === group.student1?._id && <span className="leader-badge">Leader</span>}
-                                        </div>
-                                        <div className="member-reg">{group.student1?.registrationNumber}</div>
-                                        <div className="member-email">{group.student1?.email}</div>
-                                    </div>
-                                </div>
-                                {group.student2 && (
+                                <div className="members-list-grid">
                                     <div className="member-item">
-                                        <div className="member-avatar">{group.student2?.firstName?.charAt(0)}{group.student2?.lastName?.charAt(0)}</div>
+                                        <div className="member-avatar">{group.student1?.firstName?.charAt(0)}{group.student1?.lastName?.charAt(0)}</div>
                                         <div className="member-info">
                                             <div className="member-name">
-                                                {group.student2?.firstName} {group.student2?.lastName}
-                                                {group.leader?._id === group.student2?._id && <span className="leader-badge">Leader</span>}
+                                                {group.student1?.firstName} {group.student1?.lastName}
+                                                {group.leader?._id === group.student1?._id && <span className="leader-badge">Leader</span>}
                                             </div>
-                                            <div className="member-reg">{group.student2?.registrationNumber}</div>
-                                            <div className="member-email">{group.student2?.email}</div>
+                                            <div className="member-reg">{group.student1?.registrationNumber}</div>
+                                            <div className="member-email">{group.student1?.email}</div>
                                         </div>
                                     </div>
-                                )}
+                                    {group.student2 && (
+                                        <div className="member-item">
+                                            <div className="member-avatar">{group.student2?.firstName?.charAt(0)}{group.student2?.lastName?.charAt(0)}</div>
+                                            <div className="member-info">
+                                                <div className="member-name">
+                                                    {group.student2?.firstName} {group.student2?.lastName}
+                                                    {group.leader?._id === group.student2?._id && <span className="leader-badge">Leader</span>}
+                                                </div>
+                                                <div className="member-reg">{group.student2?.registrationNumber}</div>
+                                                <div className="member-email">{group.student2?.email}</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -293,7 +312,7 @@ const GroupDetails = () => {
                                         </div>
                                     )}
                                     {group.proposalSupervisorRemarks && (
-                                        <div className="remarks-box mb-2" style={{ borderLeft: '3px solid #13633d' }}>
+                                        <div className="remarks-box-supervisor">
                                             <div className="remarks-label">Supervisor Remarks:</div>
                                             <p className="remarks-text">{group.proposalSupervisorRemarks}</p>
                                         </div>
@@ -304,6 +323,7 @@ const GroupDetails = () => {
                                             <p className="remarks-text">{group.proposalRemarks}</p>
                                         </div>
                                     )}
+                                    {renderMarks(group.evaluationMarks?.proposal)}
                                     {renderApprovalSection('proposal', group.proposalSupervisorApproval)}
                                     {!group.proposalRemarks && group.proposalSupervisorApproval === 'pending' && <p className="text-muted small mt-2">Awaiting supervisor approval for defense</p>}
                                 </div>
@@ -334,7 +354,7 @@ const GroupDetails = () => {
                                         </div>
                                     )}
                                     {group.srsSupervisorRemarks && (
-                                        <div className="remarks-box mb-2" style={{ borderLeft: '3px solid #13633d' }}>
+                                        <div className="remarks-box-supervisor">
                                             <div className="remarks-label">Supervisor Remarks:</div>
                                             <p className="remarks-text">{group.srsSupervisorRemarks}</p>
                                         </div>
@@ -345,6 +365,7 @@ const GroupDetails = () => {
                                             <p className="remarks-text">{group.srsRemarks}</p>
                                         </div>
                                     )}
+                                    {renderMarks(group.evaluationMarks?.srs)}
                                     {renderApprovalSection('srs', group.srsSupervisorApproval)}
                                     {!group.srsRemarks && group.srsSupervisorApproval === 'pending' && <p className="text-muted small mt-2">Awaiting supervisor approval for defense</p>}
                                 </div>
@@ -375,7 +396,7 @@ const GroupDetails = () => {
                                         </div>
                                     )}
                                     {group.internalSupervisorRemarks && (
-                                        <div className="remarks-box mb-2" style={{ borderLeft: '3px solid #13633d' }}>
+                                        <div className="remarks-box-supervisor">
                                             <div className="remarks-label">Supervisor Remarks:</div>
                                             <p className="remarks-text">{group.internalSupervisorRemarks}</p>
                                         </div>
@@ -386,6 +407,7 @@ const GroupDetails = () => {
                                             <p className="remarks-text">{group.internalRemarks}</p>
                                         </div>
                                     )}
+                                    {renderMarks(group.evaluationMarks?.internal)}
                                     {renderApprovalSection('internal', group.internalSupervisorApproval)}
                                     {!group.internalRemarks && group.internalSupervisorApproval === 'pending' && <p className="text-muted small mt-2">Awaiting supervisor approval for defense</p>}
                                 </div>

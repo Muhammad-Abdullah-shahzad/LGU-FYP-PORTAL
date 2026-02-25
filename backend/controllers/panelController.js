@@ -238,6 +238,82 @@ export const assignGroupToPanel = async (req, res) => {
     }
 };
 
+// @desc    Bulk assign groups to panel
+// @route   POST /api/panels/:id/bulk-assign
+// @access  Private/Coordinator
+export const bulkAssignGroupsToPanel = async (req, res) => {
+    try {
+        const { groupIds } = req.body;
+        if (!Array.isArray(groupIds) || groupIds.length === 0) {
+            return res.status(400).json({ message: 'Please provide an array of group IDs' });
+        }
+
+        const panel = await DefensePanel.findById(req.params.id);
+        if (!panel) {
+            return res.status(404).json({ message: 'Panel not found' });
+        }
+
+        const groups = await Group.find({ _id: { $in: groupIds } });
+        if (groups.length === 0) {
+            return res.status(404).json({ message: 'No valid groups found' });
+        }
+
+        const panelType = panel.panelType;
+        const results = {
+            success: [],
+            failed: []
+        };
+
+        for (const group of groups) {
+            try {
+                // Same validation logic as assignGroupToPanel
+                const phaseKey = panelType === 'proposal' ? 'proposalPanel' :
+                    panelType === 'internal' ? 'internalPanel' :
+                        panelType === 'srs' ? 'srsPanel' :
+                            panelType === 'external' ? 'externalPanel' : null;
+
+                if (!phaseKey) throw new Error('Invalid panel type');
+
+                if (group[phaseKey]) {
+                    results.failed.push({ groupId: group._id, message: `Already assigned to a ${panelType} panel` });
+                    continue;
+                }
+
+                // Conflict check
+                if (group.supervisor && panel.members.some(mId => mId.toString() === group.supervisor.toString())) {
+                    results.failed.push({ groupId: group._id, message: 'Supervisor conflict' });
+                    continue;
+                }
+
+                // Assign
+                group[phaseKey] = panel._id;
+                if (!panel.assignedGroups.includes(group._id)) {
+                    panel.assignedGroups.push(group._id);
+                }
+
+                await group.save();
+                results.success.push(group._id);
+            } catch (err) {
+                results.failed.push({ groupId: group._id, message: err.message });
+            }
+        }
+
+        await panel.save();
+        const updatedPanel = await DefensePanel.findById(panel._id)
+            .populate('members chairperson', 'firstName lastName email domain designation')
+            .populate('assignedGroups');
+
+        res.json({
+            message: `Bulk assignment completed. Success: ${results.success.length}, Failed: ${results.failed.length}`,
+            results,
+            panel: updatedPanel
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // @desc    Unassign group from panel
 // @route   POST /api/panels/:id/unassign-group
 // @access  Private/Coordinator

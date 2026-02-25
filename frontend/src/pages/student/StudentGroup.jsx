@@ -41,6 +41,9 @@ const StudentGroup = () => {
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [searchingPartner, setSearchingPartner] = useState(false);
+    const [partnerResults, setPartnerResults] = useState([]);
+    const [selectedPartner, setSelectedPartner] = useState(null);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -90,6 +93,55 @@ const StudentGroup = () => {
             console.error('Error fetching timelines:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (formData.partnerSequence) {
+                handleSearchPartner();
+            } else {
+                setPartnerResults([]);
+                setSelectedPartner(null);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [formData.partnerBatch, formData.partnerYear, formData.partnerDegree, formData.partnerSequence]);
+
+    const handleSearchPartner = async () => {
+        const fullRegNum = `${formData.partnerBatch}-${formData.partnerYear}/${formData.partnerDegree}/${formData.partnerSequence}`;
+
+        try {
+            setSearchingPartner(true);
+            const res = await api.get(`/users/students/search/${fullRegNum}`);
+            setPartnerResults(res.data.students || []);
+        } catch (err) {
+            console.error('Error searching partner:', err);
+        } finally {
+            setSearchingPartner(false);
+        }
+    };
+
+    const handleSelectPartner = (student) => {
+        setSelectedPartner(student);
+        setPartnerResults([]);
+
+        // Format: Fa-2023/BSSE/158
+        try {
+            const reg = student.registrationNumber;
+            const [batchYearPart, degree, sequence] = reg.split('/');
+            const [batch, year] = batchYearPart.split('-');
+
+            setFormData(prev => ({
+                ...prev,
+                partnerBatch: batch,
+                partnerYear: year,
+                partnerDegree: degree,
+                partnerSequence: sequence
+            }));
+        } catch (err) {
+            console.error('Error parsing registration number:', err);
         }
     };
 
@@ -375,6 +427,39 @@ const StudentGroup = () => {
                                                 <label className="modern-label">Sequence</label>
                                                 <input type="text" className="modern-input" placeholder="e.g. 158" value={formData.partnerSequence} onChange={(e) => setFormData({ ...formData, partnerSequence: e.target.value })} />
                                             </div>
+
+                                            {/* Search Results Dropdown */}
+                                            {(searchingPartner || partnerResults.length > 0 || selectedPartner) && (
+                                                <div className="span-12 mt-2">
+                                                    {searchingPartner ? (
+                                                        <div className="text-muted x-small p-2 bg-light rounded shadow-sm d-flex align-items-center gap-2">
+                                                            <div className="spinner-border spinner-border-sm" style={{ width: '0.7rem', height: '0.7rem' }}></div>
+                                                            Verifying partner roll number...
+                                                        </div>
+                                                    ) : selectedPartner ? (
+                                                        <div className="selected-partner-badge p-2 rounded-3 border-start border-4 border-success d-flex align-items-center justify-content-between" style={{ background: '#f0fff4' }}>
+                                                            <div>
+                                                                <div className="fw-bold text-success" style={{ fontSize: '0.75rem' }}>Partner Found & Verified</div>
+                                                                <div className="text-dark fw-bold" style={{ fontSize: '0.8rem' }}>{selectedPartner.firstName} {selectedPartner.lastName}</div>
+                                                                <div className="text-muted" style={{ fontSize: '0.65rem' }}>{selectedPartner.registrationNumber} • {selectedPartner.email}</div>
+                                                            </div>
+                                                            <button type="button" className="btn btn-link text-danger p-0 text-decoration-none" onClick={() => { setSelectedPartner(null); setPartnerResults([]); }}>
+                                                                Change
+                                                            </button>
+                                                        </div>
+                                                    ) : partnerResults.length > 0 && (
+                                                        <div className="search-results-list border rounded shadow-sm bg-white overflow-hidden">
+                                                            <div className="px-2 py-1 bg-light border-bottom x-small fw-bold text-muted">Select Matching Student</div>
+                                                            {partnerResults.map(s => (
+                                                                <div key={s._id} className="search-result-item p-2 border-bottom hover-bg-light cursor-pointer" onClick={() => handleSelectPartner(s)}>
+                                                                    <div className="fw-bold" style={{ fontSize: '0.75rem' }}>{s.firstName} {s.lastName}</div>
+                                                                    <div className="text-muted" style={{ fontSize: '0.6rem' }}>{s.registrationNumber}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="form-section-title">Abstract Draft</div>

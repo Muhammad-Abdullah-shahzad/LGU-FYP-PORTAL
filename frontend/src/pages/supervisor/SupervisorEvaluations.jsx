@@ -21,7 +21,13 @@ const SupervisorEvaluations = () => {
     const [evaluationData, setEvaluationData] = useState({
         status: '',
         remarks: '',
-        phase: ''
+        phase: '',
+        marks: {
+            understanding: 0,
+            design: 0,
+            originality: 0,
+            presentation: 0
+        }
     });
 
     useEffect(() => {
@@ -130,13 +136,27 @@ const SupervisorEvaluations = () => {
         setEvaluationData({
             status: status,
             remarks: '',
-            phase: defaultPhase
+            phase: defaultPhase,
+            marks: {
+                understanding: 0,
+                design: 0,
+                originality: 0,
+                presentation: 0
+            }
         });
     };
 
     const handleSubmitEvaluation = async () => {
         if (!evaluationData.remarks) {
             alert('Please provide evaluation remarks');
+            return;
+        }
+
+        // Basic validation for marks
+        const { marks } = evaluationData;
+        const invalid = Object.values(marks).some(v => v === '' || v < 0 || v > 5);
+        if (invalid) {
+            alert('Please provide valid marks (0-5) for all sections');
             return;
         }
 
@@ -378,6 +398,71 @@ const SupervisorEvaluations = () => {
                         </div>
 
                         <div className="mb-4">
+                            <label className="eval-form-label">Defense Marking (Max 20)</label>
+                            <div className="row g-2 mb-3">
+                                <div className="col-6 col-md-3">
+                                    <label className="x-small text-muted fw-bold d-block mb-1">Understanding (5)</label>
+                                    <input
+                                        type="number"
+                                        className="form-control form-control-sm bg-light border-0"
+                                        min="0" max="5"
+                                        value={evaluationData.marks.understanding}
+                                        onChange={(e) => setEvaluationData({
+                                            ...evaluationData,
+                                            marks: { ...evaluationData.marks, understanding: e.target.value }
+                                        })}
+                                    />
+                                </div>
+                                <div className="col-6 col-md-3">
+                                    <label className="x-small text-muted fw-bold d-block mb-1">Design (5)</label>
+                                    <input
+                                        type="number"
+                                        className="form-control form-control-sm bg-light border-0"
+                                        min="0" max="5"
+                                        value={evaluationData.marks.design}
+                                        onChange={(e) => setEvaluationData({
+                                            ...evaluationData,
+                                            marks: { ...evaluationData.marks, design: e.target.value }
+                                        })}
+                                    />
+                                </div>
+                                <div className="col-6 col-md-3">
+                                    <label className="x-small text-muted fw-bold d-block mb-1">Originality (5)</label>
+                                    <input
+                                        type="number"
+                                        className="form-control form-control-sm bg-light border-0"
+                                        min="0" max="5"
+                                        value={evaluationData.marks.originality}
+                                        onChange={(e) => setEvaluationData({
+                                            ...evaluationData,
+                                            marks: { ...evaluationData.marks, originality: e.target.value }
+                                        })}
+                                    />
+                                </div>
+                                <div className="col-6 col-md-3">
+                                    <label className="x-small text-muted fw-bold d-block mb-1">Presentation (5)</label>
+                                    <input
+                                        type="number"
+                                        className="form-control form-control-sm bg-light border-0"
+                                        min="0" max="5"
+                                        value={evaluationData.marks.presentation}
+                                        onChange={(e) => setEvaluationData({
+                                            ...evaluationData,
+                                            marks: { ...evaluationData.marks, presentation: e.target.value }
+                                        })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="p-2 bg-primary bg-opacity-10 text-primary rounded-3 d-flex justify-content-between align-items-center mb-3">
+                                <span className="small fw-bold">Calculated Total Marks:</span>
+                                <span className="h5 m-0 fw-800">
+                                    {Number(evaluationData.marks.understanding) +
+                                        Number(evaluationData.marks.design) +
+                                        Number(evaluationData.marks.originality) +
+                                        Number(evaluationData.marks.presentation)} / 20
+                                </span>
+                            </div>
+
                             <label className="eval-form-label">Decision: <span className="text-uppercase text-primary">{evaluationData.status}</span></label>
                             <label className="eval-form-label mt-3">Final Remarks & Feedback</label>
                             <textarea

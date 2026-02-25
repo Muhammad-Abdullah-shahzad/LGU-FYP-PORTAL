@@ -40,7 +40,7 @@ const CoordinatorPanels = () => {
     });
 
     const [assignmentData, setAssignmentData] = useState({
-        groupId: ''
+        groupIds: []
     });
 
     useEffect(() => {
@@ -104,19 +104,37 @@ const CoordinatorPanels = () => {
 
     const handleAssignGroup = async (e) => {
         e.preventDefault();
-        if (!assignmentData.groupId) return;
+        if (assignmentData.groupIds.length === 0) return;
         setSubmitting(true);
         try {
-            const res = await api.post(`/panels/${selectedPanel._id}/assign-group`, {
-                groupId: assignmentData.groupId
+            const res = await api.post(`/panels/${selectedPanel._id}/bulk-assign`, {
+                groupIds: assignmentData.groupIds
             });
             setPanels(panels.map(p => p._id === selectedPanel._id ? res.data.panel : p));
             setShowAssignModal(false);
-            setAssignmentData({ groupId: '' });
+            setAssignmentData({ groupIds: [] });
+            alert(res.data.message);
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to assign group');
+            alert(err.response?.data?.message || 'Failed to assign groups');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const toggleGroupSelection = (groupId) => {
+        setAssignmentData(prev => {
+            const groupIds = prev.groupIds.includes(groupId)
+                ? prev.groupIds.filter(id => id !== groupId)
+                : [...prev.groupIds, groupId];
+            return { ...prev, groupIds };
+        });
+    };
+
+    const selectAllEligibleGroups = (eligibleGroups) => {
+        if (assignmentData.groupIds.length === eligibleGroups.length) {
+            setAssignmentData({ groupIds: [] });
+        } else {
+            setAssignmentData({ groupIds: eligibleGroups.map(g => g._id) });
         }
     };
 
@@ -402,9 +420,22 @@ const CoordinatorPanels = () => {
                             <button className="btn p-0 text-muted" onClick={() => setShowAssignModal(false)}><HiOutlineX size={20} /></button>
                         </div>
                         <form onSubmit={handleAssignGroup}>
-                            <p className="text-muted small">Routing a group to <strong>{selectedPanel.panelName}</strong> committee for {selectedPanel.panelType} verification.</p>
-                            <label className="modal-label-minimal">Select Eligible Group</label>
-                            <div className="group-selection-list mb-3">
+                            <p className="text-muted small">Routing groups to <strong>{selectedPanel.panelName}</strong> committee for {selectedPanel.panelType} verification.</p>
+
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <label className="modal-label-minimal m-0">Eligible Groups</label>
+                                {getAvailableGroups(selectedPanel.panelType).length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-link p-0 x-small text-decoration-none fw-bold"
+                                        onClick={() => selectAllEligibleGroups(getAvailableGroups(selectedPanel.panelType).filter(g => !selectedPanel.members.some(m => (m._id || m) === (g.supervisor?._id || g.supervisor))))}
+                                    >
+                                        {assignmentData.groupIds.length > 0 ? 'Deselect All' : 'Select All Eligible'}
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="group-selection-list mb-3" style={{ maxHeight: '350px', overflowY: 'auto' }}>
                                 {getAvailableGroups(selectedPanel.panelType).length > 0 ? (
                                     getAvailableGroups(selectedPanel.panelType).map(group => {
                                         const isConflict = selectedPanel.members.some(m =>
@@ -414,8 +445,8 @@ const CoordinatorPanels = () => {
                                         return (
                                             <div
                                                 key={group._id}
-                                                className={`group-selection-item ${assignmentData.groupId === group._id ? 'selected' : ''} ${isConflict ? 'has-conflict' : ''}`}
-                                                onClick={() => !isConflict && setAssignmentData({ groupId: group._id })}
+                                                className={`group-selection-item ${assignmentData.groupIds.includes(group._id) ? 'selected' : ''} ${isConflict ? 'has-conflict' : ''}`}
+                                                onClick={() => !isConflict && toggleGroupSelection(group._id)}
                                             >
                                                 <div className="d-flex align-items-center justify-content-between w-100">
                                                     <div className="flex-grow-1">
@@ -427,13 +458,14 @@ const CoordinatorPanels = () => {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="ms-2">
+                                                    <div className="ms-3 d-flex align-items-center">
                                                         {isConflict ? (
                                                             <HiOutlineLockClosed className="text-danger" size={18} />
-                                                        ) : assignmentData.groupId === group._id ? (
-                                                            <HiOutlineCheckCircle className="text-primary" size={18} />
                                                         ) : (
-                                                            <div className="circle-placeholder" />
+                                                            <div className={`custom-checkbox-minimal ${assignmentData.groupIds.includes(group._id) ? 'checked' : ''}`}>
+                                                                {assignmentData.groupIds.includes(group._id) && <HiOutlineCheckCircle size={18} className="text-primary" />}
+                                                                {!assignmentData.groupIds.includes(group._id) && <div className="circle-placeholder" />}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -447,11 +479,16 @@ const CoordinatorPanels = () => {
                                 )}
                             </div>
 
-                            <div className="d-flex gap-2 justify-content-end mt-4">
-                                <button type="button" className="btn btn-light rounded-pill px-4 fw-bold small" onClick={() => setShowAssignModal(false)}>Cancel</button>
-                                <button type="submit" className="btn-assemble-minimal px-4" disabled={submitting || !assignmentData.groupId}>
-                                    {submitting ? 'Assigning...' : 'Assign Group'}
-                                </button>
+                            <div className="d-flex gap-2 justify-content-between align-items-center mt-4">
+                                <div className="small fw-bold text-primary">
+                                    {assignmentData.groupIds.length} Selected
+                                </div>
+                                <div className="d-flex gap-2">
+                                    <button type="button" className="btn btn-light rounded-pill px-4 fw-bold small" onClick={() => { setShowAssignModal(false); setAssignmentData({ groupIds: [] }); }}>Cancel</button>
+                                    <button type="submit" className="btn-assemble-minimal px-4" disabled={submitting || assignmentData.groupIds.length === 0}>
+                                        {submitting ? 'Assigning...' : `Assign ${assignmentData.groupIds.length} Groups`}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>

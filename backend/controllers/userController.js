@@ -354,3 +354,30 @@ export const getAllSupervisors = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+// @desc    Search students by registration number
+// @route   GET /api/users/students/search/:regNum
+// @access  Private
+export const searchStudents = async (req, res) => {
+    try {
+        const { regNum } = req.params;
+
+        // Search for students with matching registration number (case insensitive, partial match)
+        const students = await User.find({
+            role: 'student',
+            registrationNumber: { $regex: regNum, $options: 'i' },
+            isActive: true,
+            _id: { $ne: req.user._id } // Exclude the requesting user
+        })
+            .select('firstName lastName registrationNumber email')
+            .limit(5);
+
+        res.json({
+            count: students.length,
+            students
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};

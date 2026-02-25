@@ -7,145 +7,121 @@
     min-height: 100vh;
 }
 
-/* Header Section */
+/* Header Section - More Compact & Premium */
 .details-header {
-    background: rgba(19, 99, 61, 0.85);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 2.5rem;
-    margin-bottom: 2.5rem;
+    background: linear-gradient(135deg, #13633d 0%, #1a8754 100%);
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
     color: white;
-    box-shadow: 0 8px 32px 0 rgba(19, 99, 61, 0.2);
+    box-shadow: 0 10px 25px -5px rgba(19, 99, 61, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.details-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    pointer-events: none;
 }
 
 .back-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.85rem;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.8rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
 .back-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateX(-4px);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-3px);
 }
 
 .header-info {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 .group-id-badge {
     display: inline-block;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.75rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .project-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0.5rem 0 1rem 0;
-    line-height: 1.3;
-    word-break: break-word;
-    overflow-wrap: break-word;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0.25rem 0 1rem 0;
+    line-height: 1.2;
+    font-family: 'Outfit', sans-serif;
 }
 
 .meta-info {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
     flex-wrap: wrap;
 }
 
 .meta-item {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.9rem;
-    opacity: 0.95;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0.9;
 }
 
 .status-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    color: white !important;
-    /* Ensure text and icon inherit white */
+    padding: 0.4rem 1rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.status-pill svg {
-    color: white !important;
-}
-
-.status-pill.status-success {
-    background: rgba(16, 185, 129, 0.25);
-}
-
-.status-pill.status-danger {
-    background: rgba(239, 68, 68, 0.25);
-}
-
-.status-pill.status-warning {
-    background: rgba(245, 158, 11, 0.25);
-}
-
-.status-pill.status-primary {
-    background: rgba(19, 99, 61, 0.25);
-}
-
-/* Grid Layout */
+/* Grid Layout Refinement */
 .details-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    grid-template-columns: 1fr 400px;
+    gap: 1.5rem;
+    align-items: start;
 }
 
-@media (max-width: 768px) {
-    .group-details-container {
-        padding: 1rem;
-    }
-
-    .details-header {
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .project-title {
-        font-size: 1.4rem;
-    }
-
-    .meta-info {
-        gap: 1rem;
+@media (max-width: 1400px) {
+    .details-grid {
+        grid-template-columns: 1.1fr 0.9fr;
     }
 }
 
-@media (max-width: 480px) {
-    .details-header {
-        padding: 1.25rem;
-    }
-
-    .project-title {
-        font-size: 1.2rem;
+@media (max-width: 1200px) {
+    .details-grid {
+        gap: 1.25rem;
     }
 }
 
@@ -153,30 +129,50 @@
     .details-grid {
         grid-template-columns: 1fr;
     }
+
+    .group-details-container {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .details-header {
+        padding: 1.5rem;
+    }
+
+    .project-title {
+        font-size: 1.25rem;
+    }
+
+    .meta-info {
+        gap: 0.75rem;
+    }
+
+    .meta-item {
+        font-size: 0.75rem;
+    }
 }
 
 .details-column {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 /* Card Styles with Glassmorphism */
 .detail-card {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .detail-card:hover {
-    transform: translateY(-8px);
-    background: rgba(255, 255, 255, 0.75);
-    box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+    border-color: #e2e8f0;
 }
 
 .card-header {
@@ -209,7 +205,13 @@
     }
 }
 
-/* Team Members */
+/* Team Members Grid */
+.members-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
 .member-item {
     display: flex;
     gap: 1rem;
@@ -217,8 +219,8 @@
     background: rgba(248, 250, 252, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
-    margin-bottom: 0.75rem;
     transition: all 0.2s ease;
+    height: 100%;
 }
 
 .member-item:hover {
@@ -310,9 +312,16 @@
 
 .project-summary {
     color: #334155;
-    line-height: 1.6;
+    line-height: 1.7;
     font-size: 0.9rem;
     margin: 0;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    background: #fbfcfd;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
 }
 
 /* Documents */
@@ -345,10 +354,9 @@
 
 /* Defense Phases */
 .phase-section {
-    padding: 1.5rem;
-    background: rgba(248, 250, 252, 0.45);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 1.25rem;
+    background: #fbfcfd;
+    border: 1px solid #f1f5f9;
     border-radius: 12px;
     margin-bottom: 1.25rem;
     border-left: 4px solid #13633d;
@@ -415,10 +423,40 @@
 
 .remarks-box {
     margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: #fbfcfd;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+.remarks-box-supervisor {
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    padding: 0.85rem 1rem;
+    background: #f0fdf4;
+    border-radius: 8px;
+    border: 1px solid rgba(19, 99, 61, 0.15);
+    border-left: 3px solid #13633d;
+}
+
+.approval-textarea {
+    width: 100%;
     padding: 0.75rem;
-    background: white;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
+    background: #fbfcfd;
+    font-size: 0.85rem;
+    color: #334155;
+    resize: vertical;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-bottom: 0.75rem;
+}
+
+.approval-textarea:focus {
+    border-color: #13633d;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(19, 99, 61, 0.1);
 }
 
 .remarks-label {

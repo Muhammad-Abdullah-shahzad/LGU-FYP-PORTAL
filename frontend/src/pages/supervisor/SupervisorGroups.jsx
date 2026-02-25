@@ -60,27 +60,27 @@ const SupervisorGroups = () => {
                                 <tbody>
                                     {groups.map((group) => (
                                         <tr key={group._id}>
-                                            <td>
+                                            <td data-label="Ref ID">
                                                 <div className="group-name-bold">{group.groupName}</div>
                                                 <div className="text-muted" style={{ fontSize: '0.65rem' }}>{group.batch}-{group.year}</div>
                                             </td>
-                                            <td>
-                                                <div className="fw-semibold text-dark" style={{ fontSize: '0.85rem', maxWidth: '300px' }}>{group.projectTitle}</div>
+                                            <td data-label="Project Title">
+                                                <div className="fw-semibold text-dark text-truncate-mobile" style={{ fontSize: '0.85rem', maxWidth: '300px' }}>{group.projectTitle}</div>
                                             </td>
-                                            <td>
+                                            <td data-label="Academic Domain">
                                                 <span className="domain-pill-outline">{group.projectDomain}</span>
                                             </td>
-                                            <td>
+                                            <td data-label="Current Status">
                                                 <span className={`status-badge-minimal ${group.status === 'completed' ? 'status-success' : 'status-primary'}`}>
                                                     {group.status.replace('_', ' ')}
                                                 </span>
                                             </td>
-                                            <td className="text-end">
+                                            <td data-label="Actions" className="text-end">
                                                 <button
                                                     className="action-btn-sharp"
                                                     onClick={() => navigate(`/supervisor/groups/${group._id}`)}
                                                 >
-                                                    Review <HiOutlineExternalLink size={14} className="ms-1" />
+                                                    Review <HiOutlineExternalLink size={14} />
                                                 </button>
                                             </td>
                                         </tr>

@@ -173,6 +173,31 @@ const groupSchema = new mongoose.Schema({
     externalRemarks: String,
     finalGrade: String,
 
+    // Marks for different phases
+    evaluationMarks: {
+        proposal: {
+            understanding: { type: Number, default: 0 },
+            design: { type: Number, default: 0 },
+            originality: { type: Number, default: 0 },
+            presentation: { type: Number, default: 0 },
+            total: { type: Number, default: 0 }
+        },
+        srs: {
+            understanding: { type: Number, default: 0 },
+            design: { type: Number, default: 0 },
+            originality: { type: Number, default: 0 },
+            presentation: { type: Number, default: 0 },
+            total: { type: Number, default: 0 }
+        },
+        internal: {
+            understanding: { type: Number, default: 0 },
+            design: { type: Number, default: 0 },
+            originality: { type: Number, default: 0 },
+            presentation: { type: Number, default: 0 },
+            total: { type: Number, default: 0 }
+        }
+    },
+
     // Document uploads
     proposalDocument: String,
     srsDocument: String,

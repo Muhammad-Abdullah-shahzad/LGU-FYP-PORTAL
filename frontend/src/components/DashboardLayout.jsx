@@ -101,7 +101,11 @@ const DashboardLayout = ({ children, title }) => {
                     <li key={item.to} className="nav-item">
                         <Link
                             to={item.to}
-                            className={`nav-link d-flex align-items-center py-2 px-3 rounded-2 ${location.pathname === item.to ? 'active shadow-sm text-white' : 'text-secondary'}`}
+                            className={`nav-link d-flex align-items-center py-2 px-3 rounded-2 ${location.pathname === item.to ||
+                                    (item.to !== '/' && location.pathname.startsWith(item.to))
+                                    ? 'active shadow-sm text-white'
+                                    : 'text-secondary'
+                                }`}
                             onClick={() => setMobileOpen(false)}
                         >
                             <span className="me-3" style={{ fontSize: '1.2rem' }}>{item.icon}</span>

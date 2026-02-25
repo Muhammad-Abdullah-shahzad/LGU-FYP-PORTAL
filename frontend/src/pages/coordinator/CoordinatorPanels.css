@@ -388,3 +388,41 @@
     border-radius: 50%;
     border: 2px solid #e2e8f0;
 }
+
+.custom-checkbox-minimal {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.custom-checkbox-minimal.checked {
+    transform: scale(1.1);
+}
+
+.group-selection-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.group-selection-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.group-selection-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.group-selection-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.x-small {
+    font-size: 0.65rem !important;
+}
+
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}

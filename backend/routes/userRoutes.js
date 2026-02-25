@@ -7,7 +7,8 @@ import {
     deleteUser,
     getTeachersByDomain,
     getAllSupervisors,
-    uploadSupervisors
+    uploadSupervisors,
+    searchStudents
 } from '../controllers/userController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import multer from 'multer';
@@ -21,6 +22,7 @@ const upload = multer({ storage });
 // Public/Student accessible routes
 router.get('/teachers/by-domain/:domain', protect, getTeachersByDomain);
 router.get('/supervisors', protect, getAllSupervisors);
+router.get('/students/search/:regNum', protect, searchStudents);
 
 // Coordinator only routes
 router.get('/', protect, authorize('coordinator'), getAllUsers);

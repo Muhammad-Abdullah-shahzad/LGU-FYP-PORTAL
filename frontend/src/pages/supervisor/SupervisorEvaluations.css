@@ -2,43 +2,54 @@
 .evaluations-container {
     max-width: 1400px;
     margin: 0;
-    padding: 1rem 2rem;
+    padding: 1.5rem 2rem;
     animation: fadeInSlide 0.5s ease-out forwards;
-}
-
-.phase-alert {
-    background: #fdf2f2;
-    border: 1px solid #fee2e2;
-    color: #b91c1c;
-    padding: 1rem;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
 }
 
 .phase-active-badge {
     background: #f0fdf4;
     border: 1px solid #dcfce7;
     color: #166534;
-    padding: 1rem;
-    border-radius: 10px;
-    font-size: 0.8rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 2rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    border-left: 4px solid #13633d;
+}
+
+.phase-alert {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    color: #b91c1c;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-left: 4px solid #ef4444;
+}
+
+.panel-section {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 20px;
+    padding: 1.75rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .eval-card-minimal {
     background: white;
     border: 1px solid #f1f5f9;
-    border-radius: 12px;
-    transition: all 0.2s ease;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -46,70 +57,62 @@
 
 .eval-card-minimal:hover {
     border-color: #13633d;
-    box-shadow: 0 4px 15px rgba(19, 99, 61, 0.05);
+    box-shadow: 0 10px 25px -5px rgba(19, 99, 61, 0.1);
+    transform: translateY(-4px);
 }
 
 .eval-body {
-    padding: 1.25rem;
+    padding: 1.5rem;
     flex-grow: 1;
-}
-
-.eval-header {
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-
-.eval-title {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.35rem;
-}
-
-.eval-summary {
-    font-size: 0.75rem;
-    color: #64748b;
-    line-height: 1.5;
-    margin-bottom: 1rem;
 }
 
 .eval-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .eval-badge {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     font-weight: 800;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
     text-transform: uppercase;
     background: #f8fafc;
     color: #64748b;
     border: 1px solid #e2e8f0;
+    letter-spacing: 0.05em;
+}
+
+.eval-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    font-family: 'Outfit', sans-serif;
 }
 
 .eval-actions {
-    padding: 1.25rem;
+    padding: 1.25rem 1.5rem;
     border-top: 1px solid #f1f5f9;
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     background: #fbfcfd;
-    border-radius: 0 0 12px 12px;
+    border-radius: 0 0 16px 16px;
 }
 
 .eval-btn {
     flex: 1;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    padding: 0.6rem;
-    border-radius: 6px;
+    padding: 0.7rem;
+    border-radius: 8px;
     border: 1px solid transparent;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .btn-approve {
@@ -118,16 +121,9 @@
 }
 
 .btn-approve:hover {
-    background: #0f4d30;
-}
-
-.eval-btn.disabled {
-    cursor: not-allowed;
-    background: #f1f5f9 !important;
-    color: #94a3b8 !important;
-    border-color: #e2e8f0 !important;
-    transform: none !important;
-    box-shadow: none !important;
+    background: #1a8754;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(19, 99, 61, 0.2);
 }
 
 .btn-revision {
@@ -138,6 +134,7 @@
 
 .btn-revision:hover {
     background: #e2e8f0;
+    color: #1e293b;
 }
 
 .btn-reject {
@@ -148,6 +145,17 @@
 
 .btn-reject:hover {
     background: #fef2f2;
+    border-color: #ef4444;
+}
+
+.eval-btn.disabled {
+    cursor: not-allowed;
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 0.6;
 }
 
 /* Modal Styles */
@@ -157,8 +165,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -167,55 +175,85 @@
 
 .eval-modal {
     background: white;
-    border-radius: 12px;
+    border-radius: 20px;
     width: 100%;
-    max-width: 550px;
-    padding: 2rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.eval-modal h4 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 1.5rem;
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .eval-form-label {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
-    color: #94a3b8;
-    margin-bottom: 0.5rem;
+    color: #64748b;
+    margin-bottom: 0.65rem;
     display: block;
+    letter-spacing: 0.05em;
 }
 
 .eval-textarea {
     width: 100%;
-    min-height: 120px;
-    padding: 0.75rem;
-    border-radius: 8px;
+    min-height: 140px;
+    padding: 1rem;
+    border-radius: 12px;
     border: 1px solid #e2e8f0;
-    font-size: 0.85rem;
+    background: #fbfcfd;
+    font-size: 0.9rem;
     margin-bottom: 1.5rem;
+    color: #1e293b;
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
+    line-height: 1.6;
 }
 
 .eval-textarea:focus {
     border-color: #13633d;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(19, 99, 61, 0.1);
 }
 
 .eval-modal-footer {
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
     justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .evaluations-container {
+        padding: 1.25rem;
+    }
+
+    .eval-modal {
+        margin: 1rem;
+        padding: 1.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .panel-section {
+        padding: 1.25rem;
+    }
 }
 
 @keyframes fadeInSlide {
     from {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(10px);
     }
 
     to {

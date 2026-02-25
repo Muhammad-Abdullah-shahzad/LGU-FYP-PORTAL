@@ -184,3 +184,30 @@
         display: none !important;
     }
 }
+
+.font-outfit {
+    font-family: 'Outfit', sans-serif;
+}
+
+.text-truncate-mobile {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+    .content-header h5 {
+        font-size: 0.95rem;
+    }
+
+    .text-end.d-none.d-md-block {
+        display: none !important;
+    }
+}
+
+.avatar {
+    background: linear-gradient(135deg, #13633d 0%, #1a8754 100%) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(19, 99, 61, 0.2);
+}

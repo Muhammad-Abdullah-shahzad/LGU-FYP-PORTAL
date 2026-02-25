@@ -2,15 +2,16 @@
 .groups-container-wrapper {
     max-width: 1400px;
     margin: 0;
-    padding: 1rem 2rem;
+    padding: 1.5rem 2rem;
     animation: fadeInSlide 0.5s ease-out forwards;
 }
 
 .table-glass-card {
     background: white;
     border: 1px solid #f1f5f9;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .minimal-table thead {
@@ -23,15 +24,19 @@
     font-weight: 800;
     text-transform: uppercase;
     color: #94a3b8;
-    padding: 1rem 1.25rem;
-    letter-spacing: 0.05em;
+    padding: 1.25rem 1.5rem;
+    letter-spacing: 0.075em;
 }
 
 .minimal-table td {
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     font-size: 0.85rem;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
+}
+
+.minimal-table tr:hover td {
+    background-color: #fbfcfd;
 }
 
 .minimal-table tr:last-child td {
@@ -39,31 +44,35 @@
 }
 
 .group-name-bold {
-    font-weight: 700;
+    font-weight: 800;
     color: #1e293b;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.15rem;
 }
 
 .domain-pill-outline {
     font-size: 0.65rem;
-    font-weight: 700;
+    font-weight: 800;
     color: #13633d;
     background: #f0fdf4;
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid rgba(19, 99, 61, 0.1);
+    display: inline-block;
 }
 
 .status-badge-minimal {
     font-size: 0.6rem;
     font-weight: 800;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
     text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .status-primary {
-    background: #f0fdf4;
-    color: #13633d;
+    background: #eff6ff;
+    color: #2563eb;
 }
 
 .status-success {
@@ -72,20 +81,60 @@
 }
 
 .action-btn-sharp {
-    background: #f8fafc;
+    background: white;
     border: 1px solid #e2e8f0;
-    color: #64748b;
-    padding: 0.35rem 0.75rem;
-    border-radius: 6px;
+    color: #475569;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 700;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .action-btn-sharp:hover {
     background: #13633d;
     color: white;
     border-color: #13633d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(19, 99, 61, 0.15);
+}
+
+@media (max-width: 992px) {
+    .groups-container-wrapper {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .minimal-table thead {
+        display: none;
+    }
+
+    .minimal-table tr {
+        display: block;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .minimal-table td {
+        display: block;
+        padding: 0.5rem 0;
+        border: none;
+        text-align: left !important;
+    }
+
+    .minimal-table td::before {
+        content: attr(data-label);
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
 }
 
 @keyframes fadeInSlide {

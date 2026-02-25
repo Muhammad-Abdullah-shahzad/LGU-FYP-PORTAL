@@ -774,7 +774,7 @@ export const getSupervisorEvaluations = async (req, res) => {
 // @access  Private/Supervisor
 export const evaluateGroup = async (req, res) => {
     try {
-        const { status, remarks, phase } = req.body;
+        const { status, remarks, phase, marks } = req.body;
         // status: 'approved', 'rejected', 'revision'
         // phase: 'proposal', 'internal', 'srs'
 
@@ -791,6 +791,20 @@ export const evaluateGroup = async (req, res) => {
 
         if (!isSupervisor && !isPanelMember) {
             return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        // Save Marks if provided
+        if (marks) {
+            const phaseKey = phase.includes('proposal') ? 'proposal' : phase.includes('srs') ? 'srs' : (phase.includes('internal') ? 'internal' : null);
+            if (phaseKey) {
+                group.evaluationMarks[phaseKey] = {
+                    understanding: Number(marks.understanding) || 0,
+                    design: Number(marks.design) || 0,
+                    originality: Number(marks.originality) || 0,
+                    presentation: Number(marks.presentation) || 0,
+                    total: (Number(marks.understanding) || 0) + (Number(marks.design) || 0) + (Number(marks.originality) || 0) + (Number(marks.presentation) || 0)
+                };
+            }
         }
 
         let newStatus = '';
