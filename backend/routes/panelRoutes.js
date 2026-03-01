@@ -12,23 +12,23 @@ import {
     unassignGroupFromPanel,
     bulkAssignGroupsToPanel
 } from '../controllers/panelController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { checkToken, checkRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Coordinator routes
-router.post('/', protect, authorize('coordinator'), createDefensePanel);
-router.get('/', protect, authorize('coordinator'), getAllPanels);
-router.post('/:id/assign-group', protect, authorize('coordinator'), assignGroupToPanel);
-router.post('/:id/bulk-assign', protect, authorize('coordinator'), bulkAssignGroupsToPanel);
-router.put('/:id', protect, authorize('coordinator'), updateDefensePanel);
-router.delete('/:id', protect, authorize('coordinator'), deleteDefensePanel);
-router.post('/:id/unassign-group', protect, authorize('coordinator'), unassignGroupFromPanel);
+router.post('/', checkToken, checkRole('coordinator'), createDefensePanel);
+router.get('/', checkToken, checkRole('coordinator'), getAllPanels);
+router.post('/:id/assign-group', checkToken, checkRole('coordinator'), assignGroupToPanel);
+router.post('/:id/bulk-assign', checkToken, checkRole('coordinator'), bulkAssignGroupsToPanel);
+router.put('/:id', checkToken, checkRole('coordinator'), updateDefensePanel);
+router.delete('/:id', checkToken, checkRole('coordinator'), deleteDefensePanel);
+router.post('/:id/unassign-group', checkToken, checkRole('coordinator'), unassignGroupFromPanel);
 
 // Panel member routes
-router.get('/my-panels', protect, authorize('supervisor', 'panel_member'), getMyPanels);
-router.get('/:id/groups', protect, authorize('supervisor', 'panel_member', 'coordinator'), getPanelGroups);
-router.put('/evaluate/:groupId', protect, authorize('supervisor', 'panel_member'), evaluateGroup);
-router.put('/accept-revision/:groupId', protect, authorize('supervisor', 'panel_member'), acceptMinorRevision);
+router.get('/my-panels', checkToken, checkRole('supervisor', 'panel_member'), getMyPanels);
+router.get('/:id/groups', checkToken, checkRole('supervisor', 'panel_member', 'coordinator'), getPanelGroups);
+router.put('/evaluate/:groupId', checkToken, checkRole('supervisor', 'panel_member'), evaluateGroup);
+router.put('/accept-revision/:groupId', checkToken, checkRole('supervisor', 'panel_member'), acceptMinorRevision);
 
 export default router;

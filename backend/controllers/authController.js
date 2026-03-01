@@ -6,11 +6,11 @@ import { generateToken } from '../middleware/auth.js';
 // @access  Public
 export const register = async (req, res) => {
     try {
-        const { email, password, role, firstName, lastName, rollSequence, batch, enrolledYear, semester, domain, designation, degree } = req.body;
+        const { email, password, role, firstName, lastName, rollSequence, batch, enrolledYear, semester, domain, designation, degree, companyName } = req.body;
 
-        // Only allow students to register via this endpoint
-        if (role !== 'student') {
-            return res.status(403).json({ message: 'Only students can register. Other accounts are created by administration.' });
+        // Only allow students and external supervisors to register via this endpoint
+        if (role !== 'student' && role !== 'external_supervisor') {
+            return res.status(403).json({ message: 'Only students and external supervisors can register. Other accounts are created by administration.' });
         }
 
         // Check if user already exists
@@ -40,11 +40,12 @@ export const register = async (req, res) => {
             firstName,
             lastName,
             registrationNumber: generatedRegNo,
-            rollSequence: parseInt(rollSequence),
+            rollSequence: rollSequence ? parseInt(rollSequence) : undefined,
             degree,
             batch,
-            enrolledYear: parseInt(enrolledYear),
-            semester: parseInt(semester) || 7
+            enrolledYear: enrolledYear ? parseInt(enrolledYear) : undefined,
+            semester: semester ? parseInt(semester) : (role === 'student' ? 7 : undefined),
+            companyName: role === 'external_supervisor' ? companyName : undefined
         };
 
         // Only add domain and designation if they are provided and not empty

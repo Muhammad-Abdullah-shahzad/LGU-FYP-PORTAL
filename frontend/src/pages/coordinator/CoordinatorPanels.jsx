@@ -31,7 +31,6 @@ const CoordinatorPanels = () => {
     const [formData, setFormData] = useState({
         panelType: 'proposal',
         members: [],
-        chairperson: '',
         academicYear: (new Date().getFullYear() - 3).toString(),
         batch: 'Fall',
         semester: 7,
@@ -56,8 +55,8 @@ const CoordinatorPanels = () => {
                 api.get('/groups?onlyActiveTimeline=true')
             ]);
             setPanels(panelsRes.data.panels || []);
-            const facultyMembers = usersRes.data.users?.filter(u => u.role === 'supervisor') || [];
-            setUsers(facultyMembers);
+            const panelPotentialMembers = usersRes.data.users?.filter(u => ['supervisor', 'panel_member', 'external_supervisor'].includes(u.role)) || [];
+            setUsers(panelPotentialMembers);
             setGroups(groupsRes.data.groups || []);
         } catch (err) {
             console.error('Error fetching data:', err);
@@ -69,7 +68,6 @@ const CoordinatorPanels = () => {
     const handleCreatePanel = async (e) => {
         e.preventDefault();
         if (formData.members.length < 1) return alert('At least 1 member required');
-        if (!formData.chairperson) return alert('Select a chairperson');
 
         setSubmitting(true);
         try {
@@ -88,7 +86,6 @@ const CoordinatorPanels = () => {
             setFormData({
                 panelType: 'proposal',
                 members: [],
-                chairperson: '',
                 academicYear: (new Date().getFullYear() - 3).toString(),
                 batch: 'Fall',
                 semester: 7,
@@ -143,9 +140,6 @@ const CoordinatorPanels = () => {
             ? formData.members.filter(id => id !== userId)
             : [...formData.members, userId];
         setFormData({ ...formData, members: newMembers });
-        if (formData.chairperson === userId && !newMembers.includes(userId)) {
-            setFormData(prev => ({ ...prev, members: newMembers, chairperson: '' }));
-        }
     };
 
     const getAvailableGroups = (panelType) => {
@@ -244,8 +238,7 @@ const CoordinatorPanels = () => {
                                         <label className="modal-label-minimal">Committee Members</label>
                                         <div className="member-grid-minimal">
                                             {panel.members.map(member => (
-                                                <div key={member._id} className="member-chip-minimal" title={member._id === panel.chairperson._id ? 'Panel Chairperson' : ''}>
-                                                    {member._id === panel.chairperson._id && <HiOutlineStar className="chair-icon-gold" size={12} />}
+                                                <div key={member._id} className="member-chip-minimal">
                                                     {member.firstName} {member.lastName}
                                                 </div>
                                             ))}
@@ -275,7 +268,6 @@ const CoordinatorPanels = () => {
                                                     setFormData({
                                                         panelType: panel.panelType,
                                                         members: panel.members.map(m => m._id),
-                                                        chairperson: panel.chairperson._id,
                                                         academicYear: panel.academicYear,
                                                         batch: panel.batch,
                                                         semester: panel.semester,
@@ -312,7 +304,6 @@ const CoordinatorPanels = () => {
                                 setFormData({
                                     panelType: 'proposal',
                                     members: [],
-                                    chairperson: '',
                                     academicYear: (new Date().getFullYear() - 3).toString(),
                                     batch: 'Fall',
                                     semester: 7,
@@ -325,7 +316,18 @@ const CoordinatorPanels = () => {
                             <div className="row g-2">
                                 <div className="col-12">
                                     <label className="modal-label-minimal">Defense Category</label>
-                                    <select className="input-minimal" value={formData.panelType} onChange={(e) => setFormData({ ...formData, panelType: e.target.value })}>
+                                    <select
+                                        className="input-minimal"
+                                        value={formData.panelType}
+                                        onChange={(e) => {
+                                            const newType = e.target.value;
+                                            setFormData({
+                                                ...formData,
+                                                panelType: newType,
+                                                members: []
+                                            });
+                                        }}
+                                    >
                                         <option value="proposal">Proposal Defense</option>
                                         <option value="internal">Internal Defense</option>
                                         <option value="srs">SRS Defense</option>
@@ -360,32 +362,21 @@ const CoordinatorPanels = () => {
                                 </div>
                             </div>
 
-                            <label className="modal-label-minimal mb-3 mt-2">Select Faculty Members</label>
+                            <label className="modal-label-minimal mb-3 mt-2">Select Members</label>
                             <div className="mb-4 overflow-auto px-1" style={{ maxHeight: '200px' }}>
-                                {users.map(user => (
-                                    <div key={user._id} className={`member-select-item ${formData.members.includes(user._id) ? 'selected' : ''}`} onClick={() => toggleMemberSelection(user._id)}>
-                                        <HiOutlineUser className="text-muted me-3" size={16} />
-                                        <div className="flex-grow-1">
-                                            <div className="fw-bold small">{user.firstName} {user.lastName}</div>
-                                            <div className="text-muted" style={{ fontSize: '0.65rem' }}>{user.domain?.[0] || 'Faculty'}</div>
+                                {users
+                                    .filter(u => formData.panelType === 'external' ? u.role === 'external_supervisor' : (u.role === 'supervisor' || u.role === 'panel_member'))
+                                    .map(user => (
+                                        <div key={user._id} className={`member-select-item ${formData.members.includes(user._id) ? 'selected' : ''}`} onClick={() => toggleMemberSelection(user._id)}>
+                                            <HiOutlineUser className="text-muted me-3" size={16} />
+                                            <div className="flex-grow-1">
+                                                <div className="fw-bold small">{user.firstName} {user.lastName}</div>
+                                                <div className="text-muted" style={{ fontSize: '0.65rem' }}>{user.role === 'external_supervisor' ? (user.companyName || 'External Expert') : (user.domain?.[0] || 'Faculty')}</div>
+                                            </div>
+                                            {formData.members.includes(user._id) && <HiOutlineCheckCircle className="text-primary" size={18} />}
                                         </div>
-                                        {formData.members.includes(user._id) && <HiOutlineCheckCircle className="text-primary" size={18} />}
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
-
-                            {formData.members.length > 0 && (
-                                <div className="mb-4 text-center">
-                                    <label className="modal-label-minimal mb-2">Designate Chairperson</label>
-                                    <div className="chair-selector">
-                                        {users.filter(u => formData.members.includes(u._id)).map(u => (
-                                            <button key={u._id} type="button" className={`btn btn-sm rounded-pill px-3 transition-all ${formData.chairperson === u._id ? 'btn-warning text-dark border-0' : 'btn-light border'} fw-bold`} style={{ fontSize: '0.65rem' }} onClick={() => setFormData({ ...formData, chairperson: u._id })}>
-                                                {formData.chairperson === u._id && <HiOutlineStar className="me-1" />} {u.firstName}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
 
                             <div className="d-flex gap-2 justify-content-end mt-4">
                                 <button type="button" className="btn btn-light rounded-pill px-4 fw-bold small" onClick={() => {
@@ -394,7 +385,6 @@ const CoordinatorPanels = () => {
                                     setFormData({
                                         panelType: 'proposal',
                                         members: [],
-                                        chairperson: '',
                                         academicYear: (new Date().getFullYear() - 3).toString(),
                                         batch: 'Fall',
                                         semester: 7,
@@ -402,8 +392,8 @@ const CoordinatorPanels = () => {
                                         expectedTime: ''
                                     });
                                 }}>Cancel</button>
-                                <button type="submit" className="btn-assemble-minimal px-4" disabled={submitting || formData.members.length < 1 || !formData.chairperson}>
-                                    {submitting ? 'Creating...' : (selectedPanel ? 'Update Committee' : 'Establish Committee')}
+                                <button type="submit" className="btn-assemble-minimal px-4" disabled={submitting || formData.members.length < 1}>
+                                    {submitting ? 'Processing...' : (selectedPanel ? 'Update Committee' : 'Establish Committee')}
                                 </button>
                             </div>
                         </form>
@@ -412,7 +402,7 @@ const CoordinatorPanels = () => {
             )}
 
             {/* Assign Group Modal */}
-            {showAssignModal && (
+            {showAssignModal && selectedPanel && (
                 <div className="modal-minimal-overlay">
                     <div className="modal-content-minimal" style={{ maxWidth: '500px' }}>
                         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -494,6 +484,7 @@ const CoordinatorPanels = () => {
                     </div>
                 </div>
             )}
+
             {/* Assigned Groups Modal */}
             {showGroupsModal && selectedPanel && (
                 <div className="modal-minimal-overlay">

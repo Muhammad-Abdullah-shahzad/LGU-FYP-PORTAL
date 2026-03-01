@@ -231,7 +231,9 @@ const CoordinatorTimeline = () => {
                                     <PhaseCard timeline={t} phase="reProposalDefense" title="Re-Prop. Def." icon={FaChalkboardTeacher} />
                                     <PhaseCard timeline={t} phase="srsSubmission" title="SRS Sub." icon={FaFileContract} />
                                     <PhaseCard timeline={t} phase="srsDefense" title="SRS Defense" icon={FaChalkboardTeacher} />
+                                    <PhaseCard timeline={t} phase="reSrsDefense" title="Re-SRS Def." icon={FaChalkboardTeacher} />
                                     <PhaseCard timeline={t} phase="internalDefense" title="Internal Def." icon={FaCalendarCheck} />
+                                    <PhaseCard timeline={t} phase="externalDefense" title="External Def." icon={FaCalendarCheck} />
                                 </>
                             </div>
                         </div>

@@ -45,6 +45,9 @@ const Login = () => {
                 case 'student':
                     navigate('/student/dashboard');
                     break;
+                case 'external_supervisor':
+                    navigate('/external-supervisor/dashboard');
+                    break;
                 default:
                     navigate('/');
             }
@@ -122,34 +125,36 @@ const Login = () => {
 
                     <hr className="my-4 text-muted" />
 
-                    <div className="demo-access">
-                        <p className="text-center text-secondary x-small mb-3 fw-bold text-uppercase" style={{ fontSize: '0.7rem', letterSpacing: '0.05rem' }}>
-                            Quick Access (Demo)
-                        </p>
-                        <div className="d-flex flex-wrap gap-2 justify-content-center">
-                            <button
-                                className="btn btn-outline-secondary btn-sm px-3"
-                                style={{ borderRadius: '2rem', fontSize: '0.8rem' }}
-                                onClick={() => setFormData({ email: 'coordinator@lgu.edu.pk', password: 'password123' })}
-                            >
-                                Coordinator
-                            </button>
-                            <button
-                                className="btn btn-outline-secondary btn-sm px-3"
-                                style={{ borderRadius: '2rem', fontSize: '0.8rem' }}
-                                onClick={() => setFormData({ email: 'supervisor1@lgu.edu.pk', password: 'password123' })}
-                            >
-                                Supervisor
-                            </button>
-                            <button
-                                className="btn btn-outline-secondary btn-sm px-3"
-                                style={{ borderRadius: '2rem', fontSize: '0.8rem' }}
-                                onClick={() => setFormData({ email: 'student1@lgu.edu.pk', password: 'password123' })}
-                            >
-                                Student
-                            </button>
+                    {import.meta.env.VITE_SHOW_DEMO_BTN === 'true' && (
+                        <div className="demo-access">
+                            <p className="text-center text-secondary x-small mb-3 fw-bold text-uppercase" style={{ fontSize: '0.7rem', letterSpacing: '0.05rem' }}>
+                                Quick Access (Demo)
+                            </p>
+                            <div className="d-flex flex-wrap gap-2 justify-content-center">
+                                <button
+                                    className="btn btn-outline-secondary btn-sm px-3"
+                                    style={{ borderRadius: '2rem', fontSize: '0.8rem' }}
+                                    onClick={() => setFormData({ email: 'coordinator@lgu.edu.pk', password: 'password123' })}
+                                >
+                                    Coordinator
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm px-3"
+                                    style={{ borderRadius: '2rem', fontSize: '0.8rem' }}
+                                    onClick={() => setFormData({ email: 'supervisor1@lgu.edu.pk', password: 'password123' })}
+                                >
+                                    Supervisor
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm px-3"
+                                    style={{ borderRadius: '2rem', fontSize: '0.8rem' }}
+                                    onClick={() => setFormData({ email: 'student1@lgu.edu.pk', password: 'password123' })}
+                                >
+                                    Student
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

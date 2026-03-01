@@ -473,6 +473,7 @@ export const getAllGroups = async (req, res) => {
         const groups = await Group.find(filter)
             .populate('student1 student2', 'firstName lastName email registrationNumber')
             .populate('supervisor', 'firstName lastName email domain')
+            .populate('externalSupervisor', 'firstName lastName companyName')
             .populate({
                 path: 'proposalPanel internalPanel srsPanel externalPanel',
                 populate: {
@@ -1008,4 +1009,111 @@ export const rejoinBatch = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+
+// @desc    Assign external supervisor to a group (Coordinator)
+// @route   PUT /api/groups/:id/assign-external
+// @access  Private/Coordinator
+export const assignExternalSupervisor = async (req, res) => {
+    try {
+        const { externalSupervisorId } = req.body;
+        const group = await Group.findById(req.params.id);
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const externalSupervisor = await User.findById(externalSupervisorId);
+        if (!externalSupervisor || externalSupervisor.role !== 'external_supervisor') {
+            return res.status(400).json({ message: 'Invalid external supervisor selected' });
+        }
+
+        group.externalSupervisor = externalSupervisorId;
+        group.evaluationMarks.external.status = 'pending';
+
+        await group.save();
+
+        res.json({ message: 'External supervisor assigned successfully', group });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Evaluate a group (External Supervisor)
+// @route   PUT /api/groups/:id/external-evaluate
+// @access  Private/External Supervisor
+export const submitExternalEvaluation = async (req, res) => {
+    try {
+        const { understanding, design, originality, presentation, remarks } = req.body;
+        const group = await Group.findById(req.params.id);
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        // Check if this supervisor is assigned directly or via panel
+        let isAuthorized = group.externalSupervisor && group.externalSupervisor.toString() === req.user._id.toString();
+
+        if (!isAuthorized && group.externalPanel) {
+            const panel = await DefensePanel.findById(group.externalPanel);
+            if (panel && panel.members.some(m => m.toString() === req.user._id.toString())) {
+                isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized) {
+            return res.status(403).json({ message: 'You are not authorized to evaluate this group' });
+        }
+
+        const total = (Number(understanding) || 0) + (Number(design) || 0) + (Number(originality) || 0) + (Number(presentation) || 0);
+
+        group.evaluationMarks.external = {
+            understanding: Number(understanding) || 0,
+            design: Number(design) || 0,
+            originality: Number(originality) || 0,
+            presentation: Number(presentation) || 0,
+            total,
+            remarks: remarks || '',
+            status: 'completed'
+        };
+
+        await group.save();
+
+        res.json({ message: 'Evaluation submitted successfully', group });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Get groups for external supervisor
+// @route   GET /api/groups/external/my-groups
+// @access  Private/External Supervisor
+export const getExternalSupervisorGroups = async (req, res) => {
+    try {
+        // Find panels where user is a member
+        const myPanels = await DefensePanel.find({ members: req.user._id, panelType: 'external' });
+        const panelIds = myPanels.map(p => p._id);
+
+        // Find groups directly assigned or via panel
+        const groups = await Group.find({
+            $or: [
+                { externalSupervisor: req.user._id },
+                { externalPanel: { $in: panelIds } }
+            ]
+        })
+            .populate('student1', 'firstName lastName registrationNumber email')
+            .populate('student2', 'firstName lastName registrationNumber email')
+            .populate('supervisor', 'firstName lastName email')
+            .populate('externalSupervisor', 'firstName lastName companyName')
+            .sort({ createdAt: -1 });
+
+        res.json({ count: groups.length, groups });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 

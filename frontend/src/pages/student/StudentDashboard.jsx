@@ -83,7 +83,8 @@ const StudentDashboard = () => {
             { name: 'SRS Defense', end: timeline.srsDefenseEnd, active: timeline.srsDefenseStatus === 'Open' },
             { name: 'Re-SRS Defense', end: timeline.reSrsDefenseEnd, active: timeline.reSrsDefenseStatus === 'Open' },
             { name: 'Internal Defense', end: timeline.internalDefenseEnd, active: timeline.internalDefenseStatus === 'Open' },
-            { name: 'Re-Internal Defense', end: timeline.reInternalDefenseEnd, active: timeline.reInternalDefenseStatus === 'Open' }
+            { name: 'Re-Internal Defense', end: timeline.reInternalDefenseEnd, active: timeline.reInternalDefenseStatus === 'Open' },
+            { name: 'External Defense', end: timeline.externalDefenseEnd, active: timeline.externalDefenseStatus === 'Open' }
         ];
 
         const currentActive = phases.find(p => p.active && p.end);
@@ -426,6 +427,10 @@ const StudentDashboard = () => {
                                     // Re-Internal
                                     ...(timeline.reInternalDefenseStatus === 'Open' && (group?.status === 'internal_rejected' || group?.status === 'internal_minor_revision' || group?.internalAttempts > 0) ? [
                                         { name: 'Re-Internal Defense', start: timeline.reInternalDefenseStart, end: timeline.reInternalDefenseEnd, active: timeline.reInternalDefenseStatus === 'Open' }
+                                    ] : []),
+                                    // External Defense
+                                    ...(timeline.externalDefenseStatus === 'Open' || (group?.status === 'internal_approved' || group?.status === 'approved') ? [
+                                        { name: 'External Defense', start: timeline.externalDefenseStart, end: timeline.externalDefenseEnd, active: timeline.externalDefenseStatus === 'Open' }
                                     ] : [])
                                 ].map((phase, idx) => {
                                     const isDone = phase.end && new Date(phase.end) < new Date();

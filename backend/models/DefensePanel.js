@@ -19,7 +19,7 @@ const defensePanelSchema = new mongoose.Schema({
     chairperson: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     },
     assignedGroups: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -59,16 +59,7 @@ const defensePanelSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Ensure chairperson is in members array
-defensePanelSchema.pre('validate', function (next) {
 
-    // Ensure chairperson is in members array
-    if (!this.members.includes(this.chairperson)) {
-        this.members.push(this.chairperson);
-    }
-
-    next();
-});
 
 // Auto-generate panel name
 defensePanelSchema.pre('validate', async function (next) {

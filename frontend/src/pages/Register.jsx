@@ -55,7 +55,8 @@ const Register = () => {
         const result = await register(registerData);
 
         if (result.success) {
-            navigate('/student/dashboard');
+            const dashboardPath = result.user.role === 'external_supervisor' ? '/external-supervisor/dashboard' : '/student/dashboard';
+            navigate(dashboardPath);
         } else {
             setError(result.message);
         }
@@ -69,7 +70,33 @@ const Register = () => {
                 <div className="card-body p-4 p-md-5">
                     <div className="text-center mb-4">
                         <h2 className="fw-bold text-primary mb-1">Create Account</h2>
-                        <p className="text-muted small">Join the LGU FYP PORTAL as a Student</p>
+                        <p className="text-muted small">Join the LGU FYP PORTAL</p>
+                    </div>
+
+                    <div className="mb-4 d-flex justify-content-center">
+                        <div className="btn-group w-100 shadow-sm" style={{ borderRadius: '0.75rem', overflow: 'hidden' }}>
+                            <input
+                                type="radio"
+                                className="btn-check"
+                                name="role"
+                                id="role-student"
+                                value="student"
+                                checked={formData.role === 'student'}
+                                onChange={handleChange}
+                            />
+                            <label className={`btn ${formData.role === 'student' ? 'btn-primary' : 'btn-outline-primary'} py-2 fw-semibold`} htmlFor="role-student">Student</label>
+
+                            <input
+                                type="radio"
+                                className="btn-check"
+                                name="role"
+                                id="role-external"
+                                value="external_supervisor"
+                                checked={formData.role === 'external_supervisor'}
+                                onChange={handleChange}
+                            />
+                            <label className={`btn ${formData.role === 'external_supervisor' ? 'btn-primary' : 'btn-outline-primary'} py-2 fw-semibold`} htmlFor="role-external">External Supervisor</label>
+                        </div>
                     </div>
 
                     {error && (
@@ -125,75 +152,96 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                                <label className="form-label small fw-semibold text-secondary">Batch *</label>
-                                <select
-                                    className="form-select border-0 bg-light fs-6"
-                                    name="batch"
-                                    value={formData.batch}
-                                    onChange={handleChange}
-                                    style={{ borderRadius: '0.75rem' }}
-                                    required
-                                >
-                                    <option value="Fa">Fa (Fall)</option>
-                                    <option value="Sp">Sp (Spring)</option>
-                                </select>
-                            </div>
-                            <div className="col-md-6">
-                                <label className="form-label small fw-semibold text-secondary">Degree *</label>
-                                <select
-                                    className="form-select border-0 bg-light fs-6"
-                                    name="degree"
-                                    value={formData.degree}
-                                    onChange={handleChange}
-                                    style={{ borderRadius: '0.75rem' }}
-                                    required
-                                >
-                                    <option value="BSCS">BSCS</option>
-                                    <option value="BSSE">BSSE</option>
-                                    <option value="BSIT">BSIT</option>
-                                    <option value="BSAI">BS AI</option>
-                                    <option value="BSDS">BS DS</option>
-                                    <option value="BSCY">BS CY</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                                <label className="form-label small fw-semibold text-secondary">Enrollment Year *</label>
-                                <select
-                                    className="form-select border-0 bg-light fs-6"
-                                    name="enrolledYear"
-                                    value={formData.enrolledYear}
-                                    onChange={handleChange}
-                                    style={{ borderRadius: '0.75rem' }}
-                                    required
-                                >
-                                    {years.map(y => <option key={y} value={y}>{y}</option>)}
-                                </select>
-                            </div>
-                            <div className="col-md-6">
-                                <label className="form-label small fw-semibold text-secondary" htmlFor="rollSequence">Roll Sequence No *</label>
-                                <input
-                                    type="number"
-                                    className="form-control border-0 bg-light fs-6"
-                                    id="rollSequence"
-                                    name="rollSequence"
-                                    value={formData.rollSequence}
-                                    onChange={handleChange}
-                                    placeholder="e.g. 158"
-                                    style={{ borderRadius: '0.75rem' }}
-                                    required
-                                />
-                                {formData.rollSequence && (
-                                    <div className="mt-1 x-small fw-bold text-primary">
-                                        Generated Roll No: {formData.batch}-{formData.enrolledYear}/{formData.degree}/{formData.rollSequence}
+                        {formData.role === 'student' ? (
+                            <>
+                                <div className="row g-3 mb-3">
+                                    <div className="col-md-6">
+                                        <label className="form-label small fw-semibold text-secondary">Batch *</label>
+                                        <select
+                                            className="form-select border-0 bg-light fs-6"
+                                            name="batch"
+                                            value={formData.batch}
+                                            onChange={handleChange}
+                                            style={{ borderRadius: '0.75rem' }}
+                                            required
+                                        >
+                                            <option value="Fa">Fa (Fall)</option>
+                                            <option value="Sp">Sp (Spring)</option>
+                                        </select>
                                     </div>
-                                )}
+                                    <div className="col-md-6">
+                                        <label className="form-label small fw-semibold text-secondary">Degree *</label>
+                                        <select
+                                            className="form-select border-0 bg-light fs-6"
+                                            name="degree"
+                                            value={formData.degree}
+                                            onChange={handleChange}
+                                            style={{ borderRadius: '0.75rem' }}
+                                            required
+                                        >
+                                            <option value="BSCS">BSCS</option>
+                                            <option value="BSSE">BSSE</option>
+                                            <option value="BSIT">BSIT</option>
+                                            <option value="BSAI">BS AI</option>
+                                            <option value="BSDS">BS DS</option>
+                                            <option value="BSCY">BS CY</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="row g-3 mb-3">
+                                    <div className="col-md-6">
+                                        <label className="form-label small fw-semibold text-secondary">Enrollment Year *</label>
+                                        <select
+                                            className="form-select border-0 bg-light fs-6"
+                                            name="enrolledYear"
+                                            value={formData.enrolledYear}
+                                            onChange={handleChange}
+                                            style={{ borderRadius: '0.75rem' }}
+                                            required
+                                        >
+                                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="form-label small fw-semibold text-secondary" htmlFor="rollSequence">Roll Sequence No *</label>
+                                        <input
+                                            type="number"
+                                            className="form-control border-0 bg-light fs-6"
+                                            id="rollSequence"
+                                            name="rollSequence"
+                                            value={formData.rollSequence}
+                                            onChange={handleChange}
+                                            placeholder="e.g. 158"
+                                            style={{ borderRadius: '0.75rem' }}
+                                            required
+                                        />
+                                        {formData.rollSequence && (
+                                            <div className="mt-1 x-small fw-bold text-primary">
+                                                Generated Roll No: {formData.batch}-{formData.enrolledYear}/{formData.degree}/{formData.rollSequence}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="row g-3 mb-3">
+                                <div className="col-md-12">
+                                    <label className="form-label small fw-semibold text-secondary" htmlFor="companyName">Company Name *</label>
+                                    <input
+                                        type="text"
+                                        className="form-control border-0 bg-light fs-6"
+                                        id="companyName"
+                                        name="companyName"
+                                        value={formData.companyName}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Google, Microsoft, Local Software House"
+                                        style={{ borderRadius: '0.75rem' }}
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="row g-3 mb-4">
                             <div className="col-md-6">

@@ -7,27 +7,22 @@ import User from '../models/User.js';
 // @access  Private/Coordinator
 export const createDefensePanel = async (req, res) => {
     try {
-        const { panelType, members, chairperson, academicYear, semester, batch, className, expectedTime } = req.body;
+        const { panelType, members, academicYear, semester, batch, className, expectedTime } = req.body;
 
-        // Validate members are teachers
+        // Validate members are teachers/experts
+        const allowedRoles = panelType === 'external' ? ['external_supervisor'] : ['supervisor', 'panel_member'];
         const teachers = await User.find({
             _id: { $in: members },
-            role: { $in: ['supervisor', 'panel_member'] }
+            role: { $in: allowedRoles }
         });
 
         if (teachers.length !== members.length) {
-            return res.status(400).json({ message: 'All members must be valid teachers' });
-        }
-
-        // Validate chairperson is in members
-        if (!members.includes(chairperson)) {
-            return res.status(400).json({ message: 'Chairperson must be one of the panel members' });
+            return res.status(400).json({ message: `All members must be valid ${panelType === 'external' ? 'External Supervisors' : 'Faculty members'}` });
         }
 
         const panel = await DefensePanel.create({
             panelType,
             members,
-            chairperson,
             academicYear,
             semester,
             batch,
@@ -36,7 +31,7 @@ export const createDefensePanel = async (req, res) => {
             createdBy: req.user._id
         });
 
-        await panel.populate('members chairperson', 'firstName lastName email domain designation');
+        await panel.populate('members', 'firstName lastName email domain designation');
 
         res.status(201).json({
             message: 'Defense panel created successfully',
@@ -88,7 +83,7 @@ export const deleteDefensePanel = async (req, res) => {
 // @access  Private/Coordinator
 export const updateDefensePanel = async (req, res) => {
     try {
-        const { panelType, members, chairperson, academicYear, semester, batch, className, expectedTime } = req.body;
+        const { panelType, members, academicYear, semester, batch, className, expectedTime } = req.body;
 
         const panel = await DefensePanel.findById(req.params.id);
         if (!panel) {
@@ -96,23 +91,18 @@ export const updateDefensePanel = async (req, res) => {
         }
 
         if (members) {
-            // Validate members are teachers
+            // Validate members are teachers/experts
+            const type = panelType || panel.panelType;
+            const allowedRoles = type === 'external' ? ['external_supervisor'] : ['supervisor', 'panel_member'];
             const teachers = await User.find({
                 _id: { $in: members },
-                role: { $in: ['supervisor', 'panel_member'] }
+                role: { $in: allowedRoles }
             });
 
             if (teachers.length !== members.length) {
-                return res.status(400).json({ message: 'All members must be valid teachers' });
+                return res.status(400).json({ message: `All members must be valid ${type === 'external' ? 'External Supervisors' : 'Faculty members'}` });
             }
             panel.members = members;
-        }
-
-        if (chairperson) {
-            if (!panel.members.includes(chairperson)) {
-                return res.status(400).json({ message: 'Chairperson must be one of the panel members' });
-            }
-            panel.chairperson = chairperson;
         }
 
         if (panelType) panel.panelType = panelType;
@@ -123,7 +113,7 @@ export const updateDefensePanel = async (req, res) => {
         if (expectedTime !== undefined) panel.expectedTime = expectedTime;
 
         await panel.save();
-        await panel.populate('members chairperson', 'firstName lastName email domain designation');
+        await panel.populate('members', 'firstName lastName email domain designation');
 
         res.json({
             message: 'Defense panel updated successfully',
@@ -149,7 +139,7 @@ export const getAllPanels = async (req, res) => {
         if (batch) filter.batch = batch;
 
         const panels = await DefensePanel.find(filter)
-            .populate('members chairperson', 'firstName lastName email domain designation')
+            .populate('members', 'firstName lastName email domain designation')
             .populate('assignedGroups')
             .sort({ createdAt: -1 });
 
@@ -300,7 +290,7 @@ export const bulkAssignGroupsToPanel = async (req, res) => {
 
         await panel.save();
         const updatedPanel = await DefensePanel.findById(panel._id)
-            .populate('members chairperson', 'firstName lastName email domain designation')
+            .populate('members', 'firstName lastName email domain designation')
             .populate('assignedGroups');
 
         res.json({
@@ -406,7 +396,7 @@ export const getMyPanels = async (req, res) => {
             members: req.user._id,
             isActive: true
         })
-            .populate('members chairperson', 'firstName lastName email domain')
+            .populate('members', 'firstName lastName email domain')
             .populate({
                 path: 'assignedGroups',
                 populate: {

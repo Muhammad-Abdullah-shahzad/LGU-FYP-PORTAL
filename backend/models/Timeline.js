@@ -104,6 +104,14 @@ const timelineSchema = new mongoose.Schema({
         default: 'Closed'
     },
 
+    externalDefenseStart: Date,
+    externalDefenseEnd: Date,
+    externalDefenseStatus: {
+        type: String,
+        enum: ['Open', 'Closed'],
+        default: 'Closed'
+    },
+
     isActive: {
         type: Boolean,
         default: true

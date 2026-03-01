@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import api from '../../api/axios';
 import './CoordinatorGroups.css';
-import { HiOutlineUserGroup, HiOutlineSearch } from 'react-icons/hi';
+import { HiOutlineUserGroup, HiOutlineSearch, HiOutlineArrowRight } from 'react-icons/hi';
 
 const CoordinatorGroups = () => {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [externalSupervisors, setExternalSupervisors] = useState([]);
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState(null);
+    const [assigningLoading, setAssigningLoading] = useState(false);
     const [filters, setFilters] = useState({
         batch: '',
         batchYear: '',
@@ -29,7 +33,17 @@ const CoordinatorGroups = () => {
             supervisorStatus: params.get('supervisorStatus') || ''
         };
         setFilters(urlFilters);
+        fetchExternalSupervisors();
     }, []);
+
+    const fetchExternalSupervisors = async () => {
+        try {
+            const res = await api.get('/users?role=external_supervisor');
+            setExternalSupervisors(res.data.users || []);
+        } catch (err) {
+            console.error('Error fetching external supervisors:', err);
+        }
+    };
 
     useEffect(() => {
         fetchGroups();
@@ -45,6 +59,20 @@ const CoordinatorGroups = () => {
             console.error('Error fetching groups:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAssignExternal = async (externalSupervisorId) => {
+        if (!selectedGroup || !externalSupervisorId) return;
+        setAssigningLoading(true);
+        try {
+            await api.put(`/groups/${selectedGroup._id}/assign-external`, { externalSupervisorId });
+            setShowAssignModal(false);
+            fetchGroups();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to assign external supervisor');
+        } finally {
+            setAssigningLoading(false);
         }
     };
 
@@ -125,6 +153,7 @@ const CoordinatorGroups = () => {
                                     <th>Identifer & Title</th>
                                     <th>Session</th>
                                     <th>Supervisor</th>
+                                    <th>External</th>
                                     <th>Assigned Panel</th>
                                     <th className="text-center">Team</th>
                                     <th className="text-end">Lifecycle</th>
@@ -165,6 +194,28 @@ const CoordinatorGroups = () => {
                                                     </div>
                                                 ) : (
                                                     <span className="text-muted small opacity-50 italic">TBD</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                {group.externalSupervisor ? (
+                                                    <div className="person-tag-minimal flex-column align-items-start">
+                                                        <span className="fw-semibold text-primary" style={{ fontSize: '0.75rem' }}>{group.externalSupervisor.firstName} {group.externalSupervisor.lastName}</span>
+                                                        <span className="text-muted" style={{ fontSize: '0.65rem' }}>{group.externalSupervisor.companyName}</span>
+                                                        <button
+                                                            className="btn btn-link p-0 text-decoration-none x-small mt-1 text-primary fw-bold"
+                                                            onClick={() => { setSelectedGroup(group); setShowAssignModal(true); }}
+                                                        >
+                                                            CHANGE
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold"
+                                                        style={{ fontSize: '0.65rem' }}
+                                                        onClick={() => { setSelectedGroup(group); setShowAssignModal(true); }}
+                                                    >
+                                                        ASSIGN EXT
+                                                    </button>
                                                 )}
                                             </td>
                                             <td>
@@ -217,6 +268,51 @@ const CoordinatorGroups = () => {
                     )}
                 </div>
             </div>
+
+            {/* External Supervisor Assignment Modal */}
+            {showAssignModal && (
+                <div className="modal-overlay-minimal">
+                    <div className="modal-card-minimal shadow-lg rounded-4 animate-up">
+                        <div className="modal-header-minimal p-4 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 className="fw-bold m-0 font-outfit">Assign External Supervisor</h6>
+                            <button className="btn-close btn-close-sm" onClick={() => setShowAssignModal(false)}></button>
+                        </div>
+                        <div className="modal-body-minimal p-4" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                            <p className="small text-muted mb-3">Selected Group: <span className="fw-bold text-dark">{selectedGroup?.groupName}</span></p>
+
+                            {externalSupervisors.length === 0 ? (
+                                <div className="text-center py-3">
+                                    <p className="small text-muted">No external supervisors found. Ask them to register first!</p>
+                                </div>
+                            ) : (
+                                <div className="list-group list-group-flush">
+                                    {externalSupervisors.map(ext => (
+                                        <button
+                                            key={ext._id}
+                                            className={`list-group-item list-group-item-action border-0 rounded-3 mb-2 d-flex justify-content-between align-items-center p-3 ${selectedGroup?.externalSupervisor?._id === ext._id ? 'bg-primary-soft border-primary' : 'bg-light'}`}
+                                            onClick={() => handleAssignExternal(ext._id)}
+                                            disabled={assigningLoading}
+                                        >
+                                            <div className="text-start">
+                                                <div className="fw-bold small text-dark">{ext.firstName} {ext.lastName}</div>
+                                                <div className="text-muted" style={{ fontSize: '0.65rem' }}>{ext.companyName || 'Guest'}</div>
+                                            </div>
+                                            {assigningLoading ? (
+                                                <div className="spinner-border spinner-border-sm text-primary"></div>
+                                            ) : (
+                                                <HiOutlineArrowRight size={14} className="text-primary" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer-minimal p-4 pt-0 border-0">
+                            <button className="btn btn-light w-100 rounded-pill fw-bold" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

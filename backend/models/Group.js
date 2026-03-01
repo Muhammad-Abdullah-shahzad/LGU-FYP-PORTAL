@@ -195,7 +195,22 @@ const groupSchema = new mongoose.Schema({
             originality: { type: Number, default: 0 },
             presentation: { type: Number, default: 0 },
             total: { type: Number, default: 0 }
+        },
+        external: {
+            understanding: { type: Number, default: 0 },
+            design: { type: Number, default: 0 },
+            originality: { type: Number, default: 0 },
+            presentation: { type: Number, default: 0 },
+            total: { type: Number, default: 0 },
+            remarks: { type: String, default: '' },
+            status: { type: String, enum: ['pending', 'completed'], default: 'pending' }
         }
+    },
+
+    externalSupervisor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
     },
 
     // Document uploads

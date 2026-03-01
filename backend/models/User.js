@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['student', 'supervisor', 'coordinator', 'panel_member'],
+        enum: ['student', 'supervisor', 'coordinator', 'panel_member', 'external_supervisor'],
         required: true
     },
     firstName: {
@@ -35,6 +35,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         sparse: true,
         unique: true
+    },
+    // For external supervisors
+    companyName: {
+        type: String,
+        trim: true
     },
     // For students
     degree: {

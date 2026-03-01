@@ -24,6 +24,7 @@ const PanelGroups = lazy(() => import('./pages/panel/PanelGroups'));
 const SupervisorDashboard = lazy(() => import('./pages/supervisor/SupervisorDashboard'));
 const SupervisorEvaluations = lazy(() => import('./pages/supervisor/SupervisorEvaluations'));
 const SupervisorSettings = lazy(() => import('./pages/supervisor/SupervisorSettings'));
+const ExternalSupervisorDashboard = lazy(() => import('./pages/external_supervisor/ExternalSupervisorDashboard'));
 const Developers = lazy(() => import('./pages/developers/Developers'));
 
 const Unauthorized = () => (
@@ -53,6 +54,8 @@ const Home = () => {
         return <Navigate to="/panel/dashboard" replace />;
       case 'coordinator':
         return <Navigate to="/coordinator/dashboard" replace />;
+      case 'external_supervisor':
+        return <Navigate to="/external-supervisor/dashboard" replace />;
       default:
         return <Navigate to="/login" replace />;
     }
@@ -216,10 +219,20 @@ function App() {
               }
             />
 
+            {/* External Supervisor Routes */}
+            <Route
+              path="/external-supervisor/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['external_supervisor']}>
+                  <ExternalSupervisorDashboard />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/developers"
               element={
-                <ProtectedRoute allowedRoles={['student', 'supervisor', 'coordinator', 'panel_member']}>
+                <ProtectedRoute allowedRoles={['student', 'supervisor', 'coordinator', 'panel_member', 'external_supervisor']}>
                   <Developers />
                 </ProtectedRoute>
               }

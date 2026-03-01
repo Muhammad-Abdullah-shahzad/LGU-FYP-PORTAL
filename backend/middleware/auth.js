@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 // Protect routes - verify JWT token
-export const protect = async (req, res, next) => {
+export const checkToken = async (req, res, next) => {
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -37,7 +37,7 @@ export const protect = async (req, res, next) => {
 };
 
 // Role-based authorization
-export const authorize = (...roles) => {
+export const checkRole = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
             return res.status(403).json({

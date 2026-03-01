@@ -10,7 +10,7 @@ import {
     uploadSupervisors,
     searchStudents
 } from '../controllers/userController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { checkToken, checkRole } from '../middleware/auth.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -20,16 +20,16 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Public/Student accessible routes
-router.get('/teachers/by-domain/:domain', protect, getTeachersByDomain);
-router.get('/supervisors', protect, getAllSupervisors);
-router.get('/students/search/:regNum', protect, searchStudents);
+router.get('/teachers/by-domain/:domain', checkToken, getTeachersByDomain);
+router.get('/supervisors', checkToken, getAllSupervisors);
+router.get('/students/search/:regNum', checkToken, searchStudents);
 
 // Coordinator only routes
-router.get('/', protect, authorize('coordinator'), getAllUsers);
-router.post('/upload-supervisors', protect, authorize('coordinator'), upload.single('file'), uploadSupervisors);
-router.get('/:id', protect, authorize('coordinator'), getUserById);
-router.post('/', protect, authorize('coordinator'), createUser);
-router.put('/:id', protect, authorize('coordinator'), updateUser);
-router.delete('/:id', protect, authorize('coordinator'), deleteUser);
+router.get('/', checkToken, checkRole('coordinator'), getAllUsers);
+router.post('/upload-supervisors', checkToken, checkRole('coordinator'), upload.single('file'), uploadSupervisors);
+router.get('/:id', checkToken, checkRole('coordinator'), getUserById);
+router.post('/', checkToken, checkRole('coordinator'), createUser);
+router.put('/:id', checkToken, checkRole('coordinator'), updateUser);
+router.delete('/:id', checkToken, checkRole('coordinator'), deleteUser);
 
 export default router;

@@ -76,6 +76,11 @@ const DashboardLayout = ({ children, title }) => {
                     { to: '/coordinator/timeline', label: 'Timeline', icon: <HiOutlineCalendar /> },
                 ];
                 break;
+            case 'external_supervisor':
+                items = [
+                    { to: '/external-supervisor/dashboard', label: 'Dashboard', icon: <HiOutlineViewGrid /> },
+                ];
+                break;
             default:
                 items = [];
         }
@@ -102,9 +107,9 @@ const DashboardLayout = ({ children, title }) => {
                         <Link
                             to={item.to}
                             className={`nav-link d-flex align-items-center py-2 px-3 rounded-2 ${location.pathname === item.to ||
-                                    (item.to !== '/' && location.pathname.startsWith(item.to))
-                                    ? 'active shadow-sm text-white'
-                                    : 'text-secondary'
+                                (item.to !== '/' && location.pathname.startsWith(item.to))
+                                ? 'active shadow-sm text-white'
+                                : 'text-secondary'
                                 }`}
                             onClick={() => setMobileOpen(false)}
                         >
